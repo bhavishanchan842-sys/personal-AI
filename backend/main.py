@@ -84,6 +84,14 @@ class SettingsUpdateRequest(BaseModel):
     openai_api_key: Optional[str] = None
     ollama_base_url: Optional[str] = None
 
+class OnboardingRequest(BaseModel):
+    name: str = Field(..., min_length=1)
+    preferred_nickname: Optional[str] = None
+    occupation: Optional[str] = None
+    primary_goals: Optional[str] = None
+    communication_preference: Optional[str] = None
+    tone_preset: Optional[str] = "Empathetic Companion"
+
 # --- UI Route ---
 
 @app.get("/", response_class=HTMLResponse)
@@ -240,6 +248,43 @@ async def get_persona():
 async def update_persona(payload: PersonaUpdateRequest):
     database.save_persona_config(payload.model_dump())
     return {"success": True, "persona": database.get_persona_config()}
+
+@app.post("/api/onboarding")
+async def onboarding_endpoint(payload: OnboardingRequest):
+    name = payload.name.strip()
+    nickname = (payload.preferred_nickname or name).strip()
+    
+    # 1. Update core profile fields
+    database.set_profile_field("name", name, "identity")
+    database.set_profile_field("preferred_nickname", nickname, "identity")
+    if payload.occupation and payload.occupation.strip():
+        database.set_profile_field("occupation", payload.occupation.strip(), "work")
+    if payload.primary_goals and payload.primary_goals.strip():
+        database.set_profile_field("primary_goals", payload.primary_goals.strip(), "goals")
+    if payload.communication_preference and payload.communication_preference.strip():
+        database.set_profile_field("communication_preference", payload.communication_preference.strip(), "preferences")
+
+    # 2. Update persona config with user name and preset
+    persona = database.get_persona_config()
+    persona["user_name"] = nickname
+    if payload.tone_preset:
+        persona["tone_preset"] = payload.tone_preset
+    database.save_persona_config(persona)
+
+    # 3. Seed initial memory facts into vault
+    if payload.occupation and payload.occupation.strip():
+        add_or_update_memory(f"User works as: {payload.occupation.strip()}", category="work", importance=0.85)
+    if payload.primary_goals and payload.primary_goals.strip():
+        add_or_update_memory(f"User's primary goal is: {payload.primary_goals.strip()}", category="goal", importance=0.9)
+    if payload.communication_preference and payload.communication_preference.strip():
+        add_or_update_memory(f"User prefers communication that is: {payload.communication_preference.strip()}", category="preference", importance=0.8)
+
+    return {
+        "success": True,
+        "user_name": nickname,
+        "profile": database.get_profile(),
+        "persona": database.get_persona_config()
+    }
 
 # --- Sessions & History ---
 

@@ -98,3 +98,32 @@ def test_api_export_and_import(client):
     res_import = client.post("/api/import", json=exported_data)
     assert res_import.status_code == 200
     assert res_import.json()["success"] is True
+
+def test_api_onboarding(client):
+    onboard_payload = {
+        "name": "Sarah Connor",
+        "preferred_nickname": "Sarah",
+        "occupation": "Cybersecurity Engineer",
+        "primary_goals": "Securing distributed AI infrastructure",
+        "communication_preference": "Direct, tactical, concise",
+        "tone_preset": "Tech Mentor"
+    }
+    res = client.post("/api/onboarding", json=onboard_payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["success"] is True
+    assert data["user_name"] == "Sarah"
+
+    # Verify profile was set
+    prof_res = client.get("/api/profile")
+    prof = prof_res.json()["profile"]
+    assert prof["name"]["value"] == "Sarah Connor"
+    assert prof["preferred_nickname"]["value"] == "Sarah"
+    assert prof["occupation"]["value"] == "Cybersecurity Engineer"
+
+    # Verify persona was updated
+    persona_res = client.get("/api/persona")
+    persona = persona_res.json()["persona"]
+    assert persona["user_name"] == "Sarah"
+    assert persona["tone_preset"] == "Tech Mentor"
+

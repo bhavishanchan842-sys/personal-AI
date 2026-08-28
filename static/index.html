@@ -85,6 +85,9 @@
                         <span class="status-preset" id="sidebar-persona-preset">Empathetic Companion</span>
                     </div>
                 </div>
+                <button class="btn btn-glass btn-sm" id="btn-switch-user" style="width: 100%; margin-top: 8px; justify-content: center;">
+                    <i class="fa-solid fa-user-plus"></i> New User / Switch
+                </button>
             </div>
         </aside>
 
@@ -603,6 +606,68 @@
                 <button class="btn btn-ghost" id="btn-cancel-profile-modal">Cancel</button>
                 <button class="btn btn-primary" id="btn-save-profile-modal">Save Attribute</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal: Onboarding / First-Time User Setup Wizard -->
+    <div class="modal-overlay hidden" id="onboarding-modal">
+        <div class="modal-card onboarding-card">
+            <div class="onboarding-header">
+                <div class="onboarding-mascot">
+                    <img src="/static/images/cartoon_avatar.jpg" alt="Aegis Mascot" class="onboarding-mascot-img">
+                </div>
+                <div class="onboarding-title-meta">
+                    <span class="badge-subtle"><i class="fa-solid fa-sparkles"></i> Personal AI Initialization</span>
+                    <h2>Welcome! Let's Get Acquainted</h2>
+                    <p>I tailor my persistent memory, tone, and advice to you. Tell me a little about yourself!</p>
+                </div>
+            </div>
+
+            <form id="onboarding-form" class="onboarding-form">
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label><i class="fa-solid fa-user"></i> Full Name *</label>
+                        <input type="text" id="onboard-name" class="form-control" placeholder="e.g. Bhavik" required>
+                    </div>
+                    <div class="form-group half">
+                        <label><i class="fa-solid fa-signature"></i> Preferred Nickname *</label>
+                        <input type="text" id="onboard-nickname" class="form-control" placeholder="What should I call you?" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-briefcase"></i> What do you do? (Role / Profession)</label>
+                    <input type="text" id="onboard-occupation" class="form-control" placeholder="e.g. Full-Stack Developer, AI Researcher, Student, Designer">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-bullseye"></i> Current Primary Goal or Project</label>
+                    <input type="text" id="onboard-goals" class="form-control" placeholder="e.g. Building an autonomous AI application, preparing for exams">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-sliders"></i> Communication Style & Key Preferences</label>
+                    <input type="text" id="onboard-preferences" class="form-control" placeholder="e.g. Direct & concise, loves coffee, prefers Python & React">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-masks-theater"></i> Companion Archetype</label>
+                    <select id="onboard-tone" class="form-control">
+                        <option value="Empathetic Companion">Empathetic Companion (Warm, supportive, thoughtful)</option>
+                        <option value="Tech Mentor">Tech Mentor (Deeply technical, architectural, pedagogical)</option>
+                        <option value="Candid Best Friend">Candid Best Friend (Witty, honest, authentic banter)</option>
+                        <option value="Executive Assistant">Executive Assistant (Hyper-organized, outcome-driven)</option>
+                        <option value="Philosopher">Philosopher (Reflective, deep questions, intellectual sparring)</option>
+                    </select>
+                </div>
+
+                <div class="modal-footer" style="margin-top: 14px;">
+                    <button type="button" class="btn btn-ghost" id="btn-skip-onboarding">Skip for Now</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-onboarding">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Initialize My AI Companion
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

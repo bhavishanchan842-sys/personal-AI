@@ -101,6 +101,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnTriggerImport = document.getElementById('btn-trigger-import');
     const fileImportInput = document.getElementById('file-import-input');
 
+    // Onboarding Elements
+    const onboardingModal = document.getElementById('onboarding-modal');
+    const onboardingForm = document.getElementById('onboarding-form');
+    const onboardName = document.getElementById('onboard-name');
+    const onboardNickname = document.getElementById('onboard-nickname');
+    const onboardOccupation = document.getElementById('onboard-occupation');
+    const onboardGoals = document.getElementById('onboard-goals');
+    const onboardPreferences = document.getElementById('onboard-preferences');
+    const onboardTone = document.getElementById('onboard-tone');
+    const btnSkipOnboarding = document.getElementById('btn-skip-onboarding');
+    const btnSwitchUser = document.getElementById('btn-switch-user');
+
     // --- Helper: Toast Notification ---
     function showToast(message, type = 'success') {
         const container = document.getElementById('toast-container');
@@ -980,14 +992,116 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#039;');
     }
 
-    // --- App Init ---
-    loadPersona();
-    loadMemories();
-    loadProfile();
-    loadSettings();
-    if (state.sessionId) {
-        switchSession(state.sessionId, 'Current Session');
-    } else {
-        startNewChat();
+    // --- Onboarding & Multi-User Setup ---
+    function checkFirstTimeOnboarding() {
+        const onboarded = localStorage.getItem('aegis_onboarded');
+        if (!onboarded) {
+            setTimeout(() => {
+                const currentName = state.profile.name ? (state.profile.name.value || '') : '';
+                if (onboardName) onboardName.value = currentName === 'Bhavik' ? '' : currentName;
+                if (onboardNickname) onboardNickname.value = currentName === 'Bhavik' ? '' : currentName;
+                if (onboardingModal) onboardingModal.classList.remove('hidden');
+            }, 600);
+        }
     }
+
+    if (btnSwitchUser) {
+        btnSwitchUser.addEventListener('click', () => {
+            if (onboardName) onboardName.value = '';
+            if (onboardNickname) onboardNickname.value = '';
+            if (onboardOccupation) onboardOccupation.value = '';
+            if (onboardGoals) onboardGoals.value = '';
+            if (onboardPreferences) onboardPreferences.value = '';
+            if (onboardingModal) onboardingModal.classList.remove('hidden');
+        });
+    }
+
+    if (btnSkipOnboarding) {
+        btnSkipOnboarding.addEventListener('click', () => {
+            localStorage.setItem('aegis_onboarded', 'true');
+            if (onboardingModal) onboardingModal.classList.add('hidden');
+        });
+    }
+
+    if (onboardingForm) {
+        if (onboardName) {
+            onboardName.addEventListener('input', () => {
+                if (!onboardNickname.value.trim() || onboardNickname.dataset.autoFilled === 'true') {
+                    const parts = onboardName.value.trim().split(' ');
+                    onboardNickname.value = parts[0] || '';
+                    onboardNickname.dataset.autoFilled = 'true';
+                }
+            });
+        }
+
+        if (onboardNickname) {
+            onboardNickname.addEventListener('input', () => {
+                onboardNickname.dataset.autoFilled = 'false';
+            });
+        }
+
+        onboardingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = onboardName.value.trim();
+            const nickname = onboardNickname.value.trim() || name;
+            const occupation = onboardOccupation ? onboardOccupation.value.trim() : '';
+            const goals = onboardGoals ? onboardGoals.value.trim() : '';
+            const preferences = onboardPreferences ? onboardPreferences.value.trim() : '';
+            const tone = onboardTone ? onboardTone.value : 'Empathetic Companion';
+
+            if (!name) {
+                alert('Please enter your name.');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/onboarding', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        preferred_nickname: nickname,
+                        occupation: occupation,
+                        primary_goals: goals,
+                        communication_preference: preferences,
+                        tone_preset: tone
+                    })
+                });
+
+                if (res.ok) {
+                    localStorage.setItem('aegis_onboarded', 'true');
+                    if (onboardingModal) onboardingModal.classList.add('hidden');
+                    showToast(`Welcome, ${nickname}! Your AI companion is personalized and ready.`);
+
+                    // Reload system state
+                    await loadProfile();
+                    await loadPersona();
+                    await loadMemories();
+                    
+                    // Reset to a new conversation personalized for this user
+                    startNewChat();
+                } else {
+                    showToast('Failed to initialize onboarding', 'error');
+                }
+            } catch (err) {
+                showToast('Error during initialization', 'error');
+            }
+        });
+    }
+
+    // --- App Init ---
+    async function initApp() {
+        await loadPersona();
+        await loadMemories();
+        await loadProfile();
+        await loadSettings();
+        if (state.sessionId) {
+            switchSession(state.sessionId, 'Current Session');
+        } else {
+            startNewChat();
+        }
+        checkFirstTimeOnboarding();
+    }
+
+    initApp();
 });
