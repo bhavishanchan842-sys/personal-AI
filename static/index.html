@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis | Personal AI Companion & Memory Vault</title>
+    <!-- Google Fonts: Space Grotesk + Plus Jakarta Sans + JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Pro Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Marked & Highlight.js for Markdown Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- App Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dark-theme">
+
+    <!-- Cartoon Wallpaper Background with Glass Overlay -->
+    <div class="cartoon-bg-wrapper">
+        <div class="cartoon-bg-image"></div>
+        <div class="cartoon-bg-overlay"></div>
+    </div>
+
+    <!-- Ambient Mesh Glow Lighting -->
+    <div class="ambient-glow ambient-1"></div>
+    <div class="ambient-glow ambient-2"></div>
+    <div class="ambient-glow ambient-3"></div>
+
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-avatar-box">
+                        <img src="/static/images/cartoon_avatar.jpg" alt="Aegis AI Mascot" class="mascot-img">
+                        <div class="mascot-badge-dot"></div>
+                    </div>
+                    <div class="brand-text">
+                        <h2>AEGIS</h2>
+                        <span>Personal AI System</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="chat-tab">
+                    <i class="fa-solid fa-message"></i>
+                    <span>Conversations</span>
+                </button>
+                <button class="nav-item" data-tab="memory-tab">
+                    <i class="fa-solid fa-brain-circuit"></i>
+                    <span>Memory Vault</span>
+                    <span class="badge" id="memory-count-badge">0</span>
+                </button>
+                <button class="nav-item" data-tab="persona-tab">
+                    <i class="fa-solid fa-masks-theater"></i>
+                    <span>Persona Studio</span>
+                </button>
+                <button class="nav-item" data-tab="profile-tab">
+                    <i class="fa-solid fa-id-badge"></i>
+                    <span>User Identity</span>
+                </button>
+                <button class="nav-item" data-tab="settings-tab">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Settings & Keys</span>
+                </button>
+            </nav>
+
+            <!-- Mascot Mood & Brain Status Widget -->
+            <div class="sidebar-footer">
+                <div class="brain-status-card" id="sidebar-persona-pill">
+                    <div class="status-top">
+                        <div class="pulse-indicator">
+                            <span class="pulse-dot"></span>
+                            <span class="pulse-ring"></span>
+                        </div>
+                        <span class="status-label">Memory Engine Online</span>
+                    </div>
+                    <div class="status-meta">
+                        <span class="status-name" id="sidebar-ai-name">Aegis</span>
+                        <span class="status-preset" id="sidebar-persona-preset">Empathetic Companion</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Viewport -->
+        <main class="main-content">
+
+            <!-- 1. CONVERSATIONS TAB -->
+            <section id="chat-tab" class="tab-pane active">
+                <div class="chat-container">
+                    <!-- Chat Header Bar -->
+                    <div class="chat-header">
+                        <div class="chat-header-info">
+                            <div class="header-avatar-mascot">
+                                <img src="/static/images/cartoon_avatar.jpg" alt="Aegis" class="header-mascot-img">
+                            </div>
+                            <div>
+                                <h3 id="current-chat-title">New Conversation</h3>
+                                <p class="engine-live-text"><i class="fa-solid fa-sparkles"></i> Persistent memory engine actively listening</p>
+                            </div>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="btn btn-glass btn-sm" id="btn-new-chat" title="Start a fresh chat thread">
+                                <i class="fa-solid fa-plus"></i> New Chat
+                            </button>
+                            <button class="btn btn-glass btn-sm" id="btn-toggle-sessions" title="Open conversation history">
+                                <i class="fa-solid fa-clock-rotate-left"></i> History
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sessions Drawer (Collapsible) -->
+                    <div class="sessions-drawer" id="sessions-drawer">
+                        <div class="drawer-header">
+                            <h4><i class="fa-solid fa-clock-rotate-left"></i> Past Conversations</h4>
+                            <button class="btn-close" id="btn-close-sessions"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="sessions-list" id="sessions-list">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages Scroll Area -->
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="welcome-card">
+                            <div class="welcome-mascot-hero">
+                                <img src="/static/images/cartoon_avatar.jpg" alt="Cartoon AI" class="welcome-mascot-img">
+                                <div class="floating-sparkle s1"><i class="fa-solid fa-sparkles"></i></div>
+                                <div class="floating-sparkle s2"><i class="fa-solid fa-heart"></i></div>
+                            </div>
+                            <div class="welcome-tag">Personal Memory Enabled</div>
+                            <h2 class="welcome-greeting">Hey there, <span class="gradient-text" id="welcome-user-name">Bhavik</span>!</h2>
+                            <p class="welcome-desc">
+                                I am your personal companion. Everything you share about your code, projects, food, habits, and ideas stays safely remembered in your vault!
+                            </p>
+
+                            <!-- Live Memory Stats Mini Bar -->
+                            <div class="welcome-stats">
+                                <div class="stat-pill">
+                                    <i class="fa-solid fa-brain"></i>
+                                    <span>Memories: <strong id="welcome-mem-count">0</strong></span>
+                                </div>
+                                <div class="stat-pill">
+                                    <i class="fa-solid fa-masks-theater"></i>
+                                    <span>Tone: <strong id="welcome-tone-preset">Companion</strong></span>
+                                </div>
+                                <div class="stat-pill">
+                                    <i class="fa-solid fa-database"></i>
+                                    <span>Vault: <strong>Local SQLite</strong></span>
+                                </div>
+                            </div>
+
+                            <div class="starter-chips">
+                                <button class="chip" data-prompt="Let's brainstorm ideas for my current software project.">
+                                    💡 Brainstorm project ideas
+                                </button>
+                                <button class="chip" data-prompt="What are my top goals and preferences that you remember?">
+                                    🧠 What do you know about me?
+                                </button>
+                                <button class="chip" data-prompt="I have an update on my work and routine to tell you.">
+                                    📝 Share a new life update
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating Glass Input Capsule -->
+                    <div class="chat-input-container">
+                        <div class="input-glass-capsule">
+                            <form id="chat-form" class="chat-form">
+                                <textarea 
+                                    id="chat-input" 
+                                    placeholder="Message your companion... (Shift+Enter for newline)"
+                                    rows="1"
+                                    required
+                                ></textarea>
+                                
+                                <div class="input-controls">
+                                    <button type="button" class="btn-input-tool" id="btn-quick-memory" title="View memory vault">
+                                        <i class="fa-solid fa-brain"></i>
+                                    </button>
+                                    <button type="submit" id="btn-send" class="btn-send" title="Send message">
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="input-bottom-bar">
+                            <span><i class="fa-solid fa-sparkles"></i> Aegis remembers facts automatically as you talk</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. MEMORY VAULT TAB -->
+            <section id="memory-tab" class="tab-pane">
+                <div class="tab-header">
+                    <div>
+                        <span class="tab-subtitle">Neural Memory Bank</span>
+                        <h2><i class="fa-solid fa-brain-circuit gradient-icon"></i> Memory Vault</h2>
+                        <p>Everything your AI has learned about you across time. Searchable, categorized, and fully editable.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" id="btn-open-add-memory">
+                            <i class="fa-solid fa-plus"></i> Add New Memory
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Memory Summary Metric Cards -->
+                <div class="metric-row">
+                    <div class="metric-card">
+                        <div class="metric-icon purple"><i class="fa-solid fa-database"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-val" id="metric-total-memories">0</span>
+                            <span class="metric-name">Stored Memories</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon cyan"><i class="fa-solid fa-bolt"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-val" id="metric-active-categories">6</span>
+                            <span class="metric-name">Memory Categories</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon green"><i class="fa-solid fa-fingerprint"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-val">100% Local</span>
+                            <span class="metric-name">Privacy Protected</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Memory Search & Category Filters -->
+                <div class="memory-toolbar">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="memory-search-input" placeholder="Search memories (e.g. coffee, project, habits, music)...">
+                        <span class="search-match-badge" id="search-match-count">0 items</span>
+                    </div>
+
+                    <div class="filter-pills" id="memory-category-filters">
+                        <button class="filter-pill active" data-category="all"><i class="fa-solid fa-border-all"></i> All</button>
+                        <button class="filter-pill" data-category="preference"><i class="fa-solid fa-heart"></i> Preferences</button>
+                        <button class="filter-pill" data-category="work"><i class="fa-solid fa-laptop-code"></i> Work & Code</button>
+                        <button class="filter-pill" data-category="personal"><i class="fa-solid fa-user"></i> Personal</button>
+                        <button class="filter-pill" data-category="habit"><i class="fa-solid fa-clock"></i> Habits</button>
+                        <button class="filter-pill" data-category="goal"><i class="fa-solid fa-bullseye"></i> Goals</button>
+                        <button class="filter-pill" data-category="fact"><i class="fa-solid fa-circle-info"></i> Facts</button>
+                    </div>
+                </div>
+
+                <!-- Neural Test Retrieval Tester -->
+                <div class="test-retrieval-box">
+                    <div class="retrieval-input-group">
+                        <div class="retrieval-icon"><i class="fa-solid fa-satellite-dish"></i></div>
+                        <input type="text" id="retrieval-test-query" placeholder="Test semantic memory recall: 'What drink do I prefer?' or 'What editor do I use?'">
+                        <button class="btn btn-secondary btn-sm" id="btn-test-retrieval">
+                            <i class="fa-solid fa-bolt"></i> Test Recall
+                        </button>
+                    </div>
+                    <div id="retrieval-test-results" class="retrieval-results hidden"></div>
+                </div>
+
+                <!-- Memories Card Grid -->
+                <div class="memories-grid" id="memories-grid">
+                    <!-- Cards injected dynamically -->
+                </div>
+            </section>
+
+            <!-- 3. PERSONA STUDIO TAB -->
+            <section id="persona-tab" class="tab-pane">
+                <div class="tab-header">
+                    <div>
+                        <span class="tab-subtitle">Dynamic Behavioral Engine</span>
+                        <h2><i class="fa-solid fa-masks-theater gradient-icon"></i> Persona Studio</h2>
+                        <p>Fine-tune the tone, empathy, wit, and conversational style of your companion.</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-save-persona">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Persona
+                    </button>
+                </div>
+
+                <div class="persona-grid">
+                    <!-- Archetype Selection -->
+                    <div class="card full-width">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Personality Archetypes</h3>
+                            <span class="badge-subtle">Click to load preset values</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="preset-cards" id="preset-container">
+                                <div class="preset-card active" data-preset="Empathetic Companion">
+                                    <div class="preset-icon-badge"><i class="fa-solid fa-heart"></i></div>
+                                    <h4>Empathetic Companion</h4>
+                                    <p>Warm, emotionally supportive, thoughtful, validates feelings and checks in.</p>
+                                </div>
+                                <div class="preset-card" data-preset="Tech Mentor">
+                                    <div class="preset-icon-badge"><i class="fa-solid fa-code"></i></div>
+                                    <h4>Tech Mentor</h4>
+                                    <p>High agency, pedagogical, deep architecture insights, encouraging.</p>
+                                </div>
+                                <div class="preset-card" data-preset="Candid Best Friend">
+                                    <div class="preset-icon-badge"><i class="fa-solid fa-beer-mug-empty"></i></div>
+                                    <h4>Candid Best Friend</h4>
+                                    <p>Witty banter, playful, authentic, 100% honest peer vibes.</p>
+                                </div>
+                                <div class="preset-card" data-preset="Executive Assistant">
+                                    <div class="preset-icon-badge"><i class="fa-solid fa-briefcase"></i></div>
+                                    <h4>Executive Assistant</h4>
+                                    <p>Concise, hyper-organized, bottom-line focused, proactive execution.</p>
+                                </div>
+                                <div class="preset-card" data-preset="Philosopher">
+                                    <div class="preset-icon-badge"><i class="fa-solid fa-landmark"></i></div>
+                                    <h4>Philosopher</h4>
+                                    <p>Deeply reflective, nuanced analogies, thought-provoking dialogue.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fine-Tuning Sliders -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-sliders"></i> Voice & Demeanor Tuning</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label>AI Assistant Name</label>
+                                    <input type="text" id="persona-ai-name" class="form-control" value="Aegis">
+                                </div>
+                                <div class="form-group half">
+                                    <label>Your Name / Nickname</label>
+                                    <input type="text" id="persona-user-name" class="form-control" value="Bhavik">
+                                </div>
+                            </div>
+
+                            <div class="slider-group">
+                                <div class="slider-label">
+                                    <span><i class="fa-solid fa-heart" style="color: #ec4899;"></i> Warmth & Empathy</span>
+                                    <span class="slider-val" id="val-warmth">80%</span>
+                                </div>
+                                <input type="range" id="slider-warmth" min="0" max="100" value="80" class="slider">
+                            </div>
+
+                            <div class="slider-group">
+                                <div class="slider-label">
+                                    <span><i class="fa-solid fa-face-laugh-beam" style="color: #f59e0b;"></i> Humor & Wit</span>
+                                    <span class="slider-val" id="val-humor">50%</span>
+                                </div>
+                                <input type="range" id="slider-humor" min="0" max="100" value="50" class="slider">
+                            </div>
+
+                            <div class="slider-group">
+                                <div class="slider-label">
+                                    <span><i class="fa-solid fa-bullseye" style="color: #06b6d4;"></i> Directness (Conciseness)</span>
+                                    <span class="slider-val" id="val-directness">60%</span>
+                                </div>
+                                <input type="range" id="slider-directness" min="0" max="100" value="60" class="slider">
+                            </div>
+
+                            <div class="slider-group">
+                                <div class="slider-label">
+                                    <span><i class="fa-solid fa-user-tie" style="color: #8b5cf6;"></i> Formality</span>
+                                    <span class="slider-val" id="val-formality">30%</span>
+                                </div>
+                                <input type="range" id="slider-formality" min="0" max="100" value="30" class="slider">
+                            </div>
+
+                            <div class="checkbox-group">
+                                <label class="switch">
+                                    <input type="checkbox" id="persona-emojis" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <span>Use expressive emojis naturally</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-Time Voice Simulation Preview Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-waveform-lines"></i> Live Voice Preview</h3>
+                            <span class="badge-subtle">Simulated Tone</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="voice-preview-bubble" id="voice-preview-bubble">
+                                <div class="preview-avatar">
+                                    <img src="/static/images/cartoon_avatar.jpg" alt="Aegis Mascot" class="preview-mascot-img">
+                                </div>
+                                <div class="preview-text" id="voice-preview-text">
+                                    "Hey Bhavik! Great to see you. How did your coding session go today? Ready to dive into your next big milestone?"
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="margin-top: 14px;">
+                                <label>Custom Directives & Special Rules</label>
+                                <textarea 
+                                    id="persona-custom-instructions" 
+                                    class="form-control" 
+                                    rows="4" 
+                                    placeholder="e.g. Always ask about my morning workouts; remember I am in IST timezone; suggest clean modern architecture patterns..."
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. USER IDENTITY & PROFILE TAB -->
+            <section id="profile-tab" class="tab-pane">
+                <div class="tab-header">
+                    <div>
+                        <span class="tab-subtitle">Foundational Profile</span>
+                        <h2><i class="fa-solid fa-id-badge gradient-icon"></i> Core User Identity</h2>
+                        <p>Your permanent identity pillars, career milestones, core preferences, and long-term goals.</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-open-add-profile">
+                        <i class="fa-solid fa-plus"></i> Add Profile Field
+                    </button>
+                </div>
+
+                <div class="profile-hero-card">
+                    <div class="profile-avatar-lg">
+                        <span id="profile-avatar-initial">B</span>
+                    </div>
+                    <div class="profile-hero-meta">
+                        <h2 id="profile-hero-name">Bhavik</h2>
+                        <p id="profile-hero-goals"><i class="fa-solid fa-bullseye"></i> Building cutting-edge AI systems</p>
+                        <span class="hero-badge"><i class="fa-solid fa-shield-check"></i> Verified Profile Identity</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" id="btn-edit-hero-name" style="margin-left: auto;">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Name
+                    </button>
+                </div>
+
+                <div class="profile-grid" id="profile-grid">
+                    <!-- Injected dynamically -->
+                </div>
+            </section>
+
+            <!-- 5. SETTINGS & SYSTEM TAB -->
+            <section id="settings-tab" class="tab-pane">
+                <div class="tab-header">
+                    <div>
+                        <span class="tab-subtitle">Engine Configuration</span>
+                        <h2><i class="fa-solid fa-sliders gradient-icon"></i> Settings & API Keys</h2>
+                        <p>Configure intelligence providers, model selection, and download encrypted JSON data snapshots.</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-save-settings">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Settings
+                    </button>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-robot"></i> LLM Intelligence Engine</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Provider</label>
+                                <select id="setting-provider" class="form-control">
+                                    <option value="gemini">Google Gemini (Recommended / Fast)</option>
+                                    <option value="openai">OpenAI</option>
+                                    <option value="ollama">Ollama (Local / Offline)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Model Name</label>
+                                <input type="text" id="setting-model" class="form-control" value="gemini-3.6-flash">
+                                <small class="form-hint">Options: gemini-3.6-flash, gemini-2.5-flash, gemini-1.5-flash, gemini-1.5-pro, gpt-4o, llama3</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-key"></i> API Credentials</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Google Gemini API Key</label>
+                                <div class="input-with-status">
+                                    <input type="password" id="setting-gemini-key" class="form-control" placeholder="Enter Gemini API Key">
+                                    <span class="key-status" id="gemini-key-status">Not Set</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>OpenAI API Key</label>
+                                <div class="input-with-status">
+                                    <input type="password" id="setting-openai-key" class="form-control" placeholder="Enter OpenAI API Key">
+                                    <span class="key-status" id="openai-key-status">Not Set</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card full-width">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-database"></i> Snapshot, Backup & Restore</h3>
+                        </div>
+                        <div class="card-body flex-row-gap">
+                            <div class="backup-col">
+                                <h4><i class="fa-solid fa-cloud-arrow-down"></i> Export Neural Memory Snapshot</h4>
+                                <p>Download an exportable JSON file containing all accumulated memories, identity attributes, and conversation histories.</p>
+                                <button class="btn btn-secondary" id="btn-export-data">
+                                    <i class="fa-solid fa-download"></i> Download JSON Snapshot
+                                </button>
+                            </div>
+                            <div class="divider-vertical"></div>
+                            <div class="backup-col">
+                                <h4><i class="fa-solid fa-cloud-arrow-up"></i> Restore from Backup</h4>
+                                <p>Restore your personal AI's memory and persona from a previous backup file.</p>
+                                <input type="file" id="file-import-input" accept=".json" style="display: none;">
+                                <button class="btn btn-secondary" id="btn-trigger-import">
+                                    <i class="fa-solid fa-upload"></i> Restore from JSON
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal: Add / Edit Memory -->
+    <div class="modal-overlay hidden" id="memory-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="memory-modal-title"><i class="fa-solid fa-microchip"></i> Add New Memory</h3>
+                <button class="btn-close" id="btn-close-memory-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-memory-id">
+                <div class="form-group">
+                    <label>Memory Content</label>
+                    <textarea id="modal-memory-content" class="form-control" rows="3" placeholder="e.g. Loves Ethiopian pour-over coffee, roast profile medium-light"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Category</label>
+                        <select id="modal-memory-category" class="form-control">
+                            <option value="preference">Preference</option>
+                            <option value="work">Work & Projects</option>
+                            <option value="personal">Personal</option>
+                            <option value="habit">Habit</option>
+                            <option value="goal">Goal</option>
+                            <option value="relationship">Relationship</option>
+                            <option value="fact">General Fact</option>
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label>Importance Weight (0.1 - 1.0)</label>
+                        <input type="number" id="modal-memory-importance" class="form-control" min="0.1" max="1.0" step="0.1" value="0.8">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="btn-cancel-memory-modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-save-memory-modal">Save Memory</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add / Edit Profile Field -->
+    <div class="modal-overlay hidden" id="profile-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="profile-modal-title"><i class="fa-solid fa-id-card"></i> Set Identity Attribute</h3>
+                <button class="btn-close" id="btn-close-profile-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-profile-original-key">
+                <div class="form-group">
+                    <label>Attribute Name</label>
+                    <input type="text" id="modal-profile-key" class="form-control" placeholder="e.g. name, current_location, favorite_framework">
+                </div>
+                <div class="form-group">
+                    <label>Value</label>
+                    <input type="text" id="modal-profile-value" class="form-control" placeholder="e.g. Bengaluru, India">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="modal-profile-category" class="form-control">
+                        <option value="identity">Identity</option>
+                        <option value="goals">Goals</option>
+                        <option value="preferences">Preferences</option>
+                        <option value="general">General</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="btn-cancel-profile-modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-save-profile-modal">Save Attribute</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Application JavaScript -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

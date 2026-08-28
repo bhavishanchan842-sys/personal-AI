@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  aegis-ai:
+    build: .
+    container_name: aegis-personal-ai
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEFAULT_PROVIDER=${DEFAULT_PROVIDER:-gemini}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-gemini-3.6-flash}
+      - DATABASE_PATH=/app/data/personal_ai.db
+    volumes:
+      - aegis_data:/app/data
+
+volumes:
+  aegis_data:
+    driver: local
