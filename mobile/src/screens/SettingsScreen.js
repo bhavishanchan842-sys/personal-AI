@@ -106,13 +106,13 @@ export default function SettingsScreen() {
             </View>
           </View>
           <Text style={styles.hint}>
-            Enter your laptop's Wi-Fi IP (e.g. http://192.168.1.15:8000) or your deployed link (e.g. https://your-app.up.railway.app):
+            Default live server: <Text style={{ color: '#06b6d4', fontWeight: '700' }}>https://viberai.onrender.com</Text>
           </Text>
           <TextInput
             style={styles.input}
             value={inputUrl}
             onChangeText={setInputUrl}
-            placeholder="http://192.168.1.15:8000"
+            placeholder="https://viberai.onrender.com"
             placeholderTextColor="#64748b"
             autoCapitalize="none"
           />

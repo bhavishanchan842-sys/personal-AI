@@ -1,20 +1,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 
 const STORAGE_KEY_SERVER_URL = '@aegis_server_url';
 const STORAGE_KEY_USER_ID = '@aegis_user_id';
 
-// Default development URLs based on platform
-const DEFAULT_URL = Platform.select({
-  android: 'http://10.0.2.2:8000',
-  ios: 'http://localhost:8000',
-  default: 'http://127.0.0.1:8000'
-});
+// Default production backend URL
+const DEFAULT_URL = 'https://viberai.onrender.com';
 
 export const getServerUrl = async () => {
   try {
     const url = await AsyncStorage.getItem(STORAGE_KEY_SERVER_URL);
-    return url || DEFAULT_URL;
+    // If empty or old local development URL, default to live production URL
+    if (!url || url.includes('10.0.2.2') || url.includes('127.0.0.1') || url.includes('localhost')) {
+      await AsyncStorage.setItem(STORAGE_KEY_SERVER_URL, DEFAULT_URL);
+      return DEFAULT_URL;
+    }
+    return url;
   } catch {
     return DEFAULT_URL;
   }
@@ -27,6 +27,7 @@ export const setServerUrl = async (url) => {
     return cleanUrl;
   } catch (e) {
     console.error('Error saving server URL:', e);
+    return DEFAULT_URL;
   }
 };
 
