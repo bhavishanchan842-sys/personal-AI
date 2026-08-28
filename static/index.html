@@ -473,6 +473,7 @@
                                 <label>Provider</label>
                                 <select id="setting-provider" class="form-control">
                                     <option value="gemini">Google Gemini (Recommended / Fast)</option>
+                                    <option value="groq">Groq (Ultra-Fast Llama 3.3 & Mixtral)</option>
                                     <option value="openai">OpenAI</option>
                                     <option value="ollama">Ollama (Local / Offline)</option>
                                 </select>
@@ -480,7 +481,7 @@
                             <div class="form-group">
                                 <label>Model Name</label>
                                 <input type="text" id="setting-model" class="form-control" value="gemini-3.6-flash">
-                                <small class="form-hint">Options: gemini-3.6-flash, gemini-2.5-flash, gemini-1.5-flash, gemini-1.5-pro, gpt-4o, llama3</small>
+                                <small class="form-hint">Options: gemini-3.6-flash, llama-3.3-70b-versatile, llama-3.1-8b-instant, gpt-4o, mixtral-8x7b-32768</small>
                             </div>
                         </div>
                     </div>
@@ -495,6 +496,13 @@
                                 <div class="input-with-status">
                                     <input type="password" id="setting-gemini-key" class="form-control" placeholder="Enter Gemini API Key">
                                     <span class="key-status" id="gemini-key-status">Not Set</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Groq API Key</label>
+                                <div class="input-with-status">
+                                    <input type="password" id="setting-groq-key" class="form-control" placeholder="Enter Groq API Key (gsk_...)">
+                                    <span class="key-status" id="groq-key-status">Not Set</span>
                                 </div>
                             </div>
                             <div class="form-group">

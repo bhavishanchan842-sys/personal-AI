@@ -34,6 +34,8 @@ def get_api_key(provider: str) -> Optional[str]:
         return os.getenv("GEMINI_API_KEY")
     elif provider == "openai":
         return os.getenv("OPENAI_API_KEY")
+    elif provider == "groq":
+        return os.getenv("GROQ_API_KEY")
     return None
 
 def get_active_provider_and_model() -> tuple[str, str]:
@@ -64,24 +66,23 @@ async def stream_chat_completion(
     temperature: float = 0.7
 ) -> AsyncGenerator[str, None]:
     """
-    Streams LLM chat completion using the active provider.
-    Yields chunks of generated text in real time.
+    Multi-provider SSE streaming hub.
+    Supports Google Gemini (with resilient fallback loop), OpenAI, Groq, Ollama, and offline simulation.
     """
     provider, model = get_active_provider_and_model()
     api_key = get_api_key(provider)
 
     # 1. Google Gemini Provider
     if provider == "gemini" and api_key:
-        models_to_try = [model] + [m for m in GEMINI_FALLBACK_MODELS if m != model]
-        
-        # Convert standard OpenAI-style messages to Gemini format
+        models_to_try = [model]
+        for fb in GEMINI_FALLBACK_MODELS:
+            if fb not in models_to_try:
+                models_to_try.append(fb)
+
         contents = []
-        for msg in messages:
-            role = "user" if msg["role"] == "user" else "model"
-            contents.append({
-                "role": role,
-                "parts": [{"text": msg["content"]}]
-            })
+        for m in messages:
+            role = "user" if m["role"] == "user" else "model"
+            contents.append({"role": role, "parts": [{"text": m["content"]}]})
 
         payload = {
             "contents": contents,
@@ -90,7 +91,7 @@ async def stream_chat_completion(
             },
             "generationConfig": {
                 "temperature": temperature,
-                "maxOutputTokens": 4096
+                "maxOutputTokens": 2048
             }
         }
 
@@ -146,9 +147,15 @@ async def stream_chat_completion(
         if not success:
             yield f"*[Error: Unable to connect to Gemini with models {models_to_try}. Details: {last_error}]*"
 
-    # 2. OpenAI or OpenAI-Compatible (Ollama / Local)
-    elif (provider == "openai" and api_key) or provider == "ollama":
-        base_url = "https://api.openai.com/v1" if provider == "openai" else os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
+    # 2. OpenAI, Groq, or OpenAI-Compatible (Ollama / Local)
+    elif ((provider in ["openai", "groq"]) and api_key) or provider == "ollama":
+        if provider == "groq":
+            base_url = "https://api.groq.com/openai/v1"
+        elif provider == "openai":
+            base_url = "https://api.openai.com/v1"
+        else:
+            base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
+
         headers = {"Content-Type": "application/json"}
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"

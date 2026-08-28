@@ -82,6 +82,23 @@ def test_api_persona_endpoints(client):
     assert p["ai_name"] == "Atlas"
     assert p["tone_preset"] == "Tech Mentor"
 
+def test_api_groq_settings(client):
+    res = client.post("/api/settings", json={
+        "active_provider": "groq",
+        "active_model": "llama-3.3-70b-versatile",
+        "groq_api_key": "gsk_test_1234567890abcdef"
+    })
+    assert res.status_code == 200
+
+    res_get = client.get("/api/settings")
+    assert res_get.status_code == 200
+    data = res_get.json()
+    assert data["active_provider"] == "groq"
+    assert data["active_model"] == "llama-3.3-70b-versatile"
+    assert data["groq_api_key_set"] is True
+    assert "gsk_" in data["groq_api_key_masked"]
+
+
 def test_api_export_and_import(client):
     # Add memory first
     client.post("/api/memories", json={"content": "Testing export backup", "category": "fact", "importance": 0.5})

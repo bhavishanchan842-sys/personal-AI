@@ -108,8 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingProvider = document.getElementById('setting-provider');
     const settingModel = document.getElementById('setting-model');
     const settingGeminiKey = document.getElementById('setting-gemini-key');
+    const settingGroqKey = document.getElementById('setting-groq-key');
     const settingOpenaiKey = document.getElementById('setting-openai-key');
     const geminiKeyStatus = document.getElementById('gemini-key-status');
+    const groqKeyStatus = document.getElementById('groq-key-status');
     const openaiKeyStatus = document.getElementById('openai-key-status');
     const btnSaveSettings = document.getElementById('btn-save-settings');
     const btnExportData = document.getElementById('btn-export-data');
@@ -671,6 +673,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 geminiKeyStatus.style.color = 'var(--rose)';
             }
 
+            if (data.groq_api_key_set) {
+                groqKeyStatus.textContent = `Configured (${data.groq_api_key_masked})`;
+                groqKeyStatus.style.color = 'var(--emerald)';
+            } else {
+                groqKeyStatus.textContent = 'Not Set';
+                groqKeyStatus.style.color = 'var(--rose)';
+            }
+
             if (data.openai_api_key_set) {
                 openaiKeyStatus.textContent = `Configured (${data.openai_api_key_masked})`;
                 openaiKeyStatus.style.color = 'var(--emerald)';
@@ -683,11 +693,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    if (settingProvider) {
+        settingProvider.addEventListener('change', () => {
+            const p = settingProvider.value;
+            if (p === 'groq') {
+                settingModel.value = 'llama-3.3-70b-versatile';
+            } else if (p === 'gemini') {
+                settingModel.value = 'gemini-3.6-flash';
+            } else if (p === 'openai') {
+                settingModel.value = 'gpt-4o';
+            } else if (p === 'ollama') {
+                settingModel.value = 'llama3';
+            }
+        });
+    }
+
     btnSaveSettings.addEventListener('click', async () => {
         const payload = {
             active_provider: settingProvider.value,
             active_model: settingModel.value.trim(),
             gemini_api_key: settingGeminiKey.value.trim() || undefined,
+            groq_api_key: settingGroqKey.value.trim() || undefined,
             openai_api_key: settingOpenaiKey.value.trim() || undefined
         };
 
@@ -699,6 +725,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (res.ok) {
             showToast('Settings & API credentials saved!');
             settingGeminiKey.value = '';
+            settingGroqKey.value = '';
             settingOpenaiKey.value = '';
             loadSettings();
         }

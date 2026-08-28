@@ -91,6 +91,7 @@ class SettingsUpdateRequest(BaseModel):
     active_model: str
     gemini_api_key: Optional[str] = None
     openai_api_key: Optional[str] = None
+    groq_api_key: Optional[str] = None
     ollama_base_url: Optional[str] = None
 
 class OnboardingRequest(BaseModel):
@@ -359,6 +360,7 @@ async def get_settings():
     provider, model = get_active_provider_and_model()
     gemini_key = get_api_key("gemini")
     openai_key = get_api_key("openai")
+    groq_key = get_api_key("groq")
     
     def mask_key(k):
         if not k:
@@ -372,6 +374,8 @@ async def get_settings():
         "gemini_api_key_masked": mask_key(gemini_key),
         "openai_api_key_set": bool(openai_key),
         "openai_api_key_masked": mask_key(openai_key),
+        "groq_api_key_set": bool(groq_key),
+        "groq_api_key_masked": mask_key(groq_key),
     }
 
 @app.post("/api/settings")
@@ -384,6 +388,8 @@ async def save_settings(payload: SettingsUpdateRequest):
             cursor.execute("INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('gemini_api_key', ?, CURRENT_TIMESTAMP)", (payload.gemini_api_key.strip(),))
         if payload.openai_api_key is not None and payload.openai_api_key.strip():
             cursor.execute("INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('openai_api_key', ?, CURRENT_TIMESTAMP)", (payload.openai_api_key.strip(),))
+        if payload.groq_api_key is not None and payload.groq_api_key.strip():
+            cursor.execute("INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('groq_api_key', ?, CURRENT_TIMESTAMP)", (payload.groq_api_key.strip(),))
         conn.commit()
     return {"success": True}
 
