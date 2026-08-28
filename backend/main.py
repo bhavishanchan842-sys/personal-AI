@@ -24,7 +24,7 @@ from backend.llm_client import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize DB on startup
+    # Initialize DB schema & migrations on startup
     database.init_db()
     yield
 
@@ -43,6 +43,15 @@ app.add_middleware(
 if not STATIC_DIR.exists():
     STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+# Helper: Extract Tenant User ID
+def get_user_id(request: Request) -> str:
+    user_id = request.headers.get("X-User-Id") or request.query_params.get("user_id")
+    if user_id and user_id.strip():
+        uid = user_id.strip()
+        database.touch_user_activity(uid)
+        return uid
+    return "default"
 
 # --- Request/Response Models ---
 
@@ -85,6 +94,7 @@ class SettingsUpdateRequest(BaseModel):
     ollama_base_url: Optional[str] = None
 
 class OnboardingRequest(BaseModel):
+    user_id: Optional[str] = None
     name: str = Field(..., min_length=1)
     preferred_nickname: Optional[str] = None
     occupation: Optional[str] = None
@@ -101,23 +111,37 @@ async def serve_index():
         return FileResponse(str(index_file))
     return HTMLResponse("<h1>Personal AI System Backend is Running.</h1><p>Static UI loading...</p>")
 
+# --- User Management Endpoints ---
+
+@app.get("/api/users")
+async def list_users():
+    """List all registered isolated user profiles."""
+    users = database.get_users_list()
+    return {"users": users}
+
+@app.delete("/api/users/{target_user_id}")
+async def remove_user(target_user_id: str):
+    database.delete_user(target_user_id)
+    return {"success": True}
+
 # --- Chat & Streaming Endpoints ---
 
 @app.post("/api/chat")
-async def chat_endpoint(payload: ChatRequest, background_tasks: BackgroundTasks):
+async def chat_endpoint(payload: ChatRequest, request: Request, background_tasks: BackgroundTasks):
+    user_id = get_user_id(request)
     session_id = payload.session_id or str(uuid.uuid4())
     user_msg = payload.message.strip()
 
-    # 1. Ensure chat session exists
-    database.create_session(session_id, title=user_msg[:35] + ("..." if len(user_msg) > 35 else ""))
+    # 1. Ensure chat session exists for this user
+    database.create_session(session_id, title=user_msg[:35] + ("..." if len(user_msg) > 35 else ""), user_id=user_id)
 
-    # 2. Retrieve memories relevant to this message
-    retrieved_memories = retrieve_relevant_memories(user_msg, top_k=5)
+    # 2. Retrieve memories relevant to this specific user
+    retrieved_memories = retrieve_relevant_memories(user_msg, top_k=5, user_id=user_id)
     memory_ids = [m["id"] for m in retrieved_memories]
 
-    # 3. Load core profile and persona configuration
-    profile = database.get_profile()
-    persona = database.get_persona_config()
+    # 3. Load user-specific profile and persona configuration
+    profile = database.get_profile(user_id=user_id)
+    persona = database.get_persona_config(user_id=user_id)
 
     # 4. Synthesize context-aware system prompt
     system_prompt = assemble_system_prompt(
@@ -126,7 +150,7 @@ async def chat_endpoint(payload: ChatRequest, background_tasks: BackgroundTasks)
         retrieved_memories=retrieved_memories
     )
 
-    # 5. Fetch recent conversation messages
+    # 5. Fetch recent conversation messages for this session
     history_rows = database.get_session_messages(session_id, limit=12)
     formatted_history = []
     for r in history_rows:
@@ -138,7 +162,7 @@ async def chat_endpoint(payload: ChatRequest, background_tasks: BackgroundTasks)
 
     # 7. Generator for Streaming SSE response
     async def sse_generator():
-        # First send metadata (session_id, retrieved memories)
+        # Metadata event
         meta_event = {
             "type": "meta",
             "session_id": session_id,
@@ -173,124 +197,144 @@ async def chat_endpoint(payload: ChatRequest, background_tasks: BackgroundTasks)
         # Send completion event
         yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
-        # Trigger background memory extraction
+        # Trigger background memory extraction for this isolated user
         asyncio.create_task(
             extract_and_store_memories(
                 user_message=user_msg,
                 assistant_response=assistant_text,
-                session_id=session_id
+                session_id=session_id,
+                user_id=user_id
             )
         )
 
     return StreamingResponse(sse_generator(), media_type="text/event-stream")
 
-# --- Memory Management Endpoints ---
+# --- Memory Management Endpoints (Scoped per User) ---
 
 @app.get("/api/memories")
-async def list_memories(category: Optional[str] = None, search: Optional[str] = None):
-    memories = database.get_all_memories(category=category, search=search)
-    return {"memories": memories, "count": len(memories)}
+async def list_memories(request: Request, category: Optional[str] = None, search: Optional[str] = None):
+    user_id = get_user_id(request)
+    memories = database.get_all_memories(user_id=user_id, category=category, search=search)
+    return {"memories": memories, "count": len(memories), "user_id": user_id}
 
 @app.post("/api/memories")
-async def create_memory(payload: MemoryCreateRequest):
+async def create_memory(payload: MemoryCreateRequest, request: Request):
+    user_id = get_user_id(request)
     mem_id, action = add_or_update_memory(
         content=payload.content,
         category=payload.category,
-        importance=payload.importance
+        importance=payload.importance,
+        user_id=user_id
     )
     return {"id": mem_id, "action": action, "success": True}
 
 @app.put("/api/memories/{memory_id}")
-async def edit_memory(memory_id: int, payload: MemoryUpdateRequest):
+async def edit_memory(memory_id: int, payload: MemoryUpdateRequest, request: Request):
+    user_id = get_user_id(request)
     success = database.update_memory(
         memory_id=memory_id,
         content=payload.content,
         category=payload.category,
-        importance=payload.importance
+        importance=payload.importance,
+        user_id=user_id
     )
     if not success:
         raise HTTPException(status_code=404, detail="Memory not found")
     return {"success": True}
 
 @app.delete("/api/memories/{memory_id}")
-async def remove_memory(memory_id: int):
-    success = database.delete_memory(memory_id)
+async def remove_memory(memory_id: int, request: Request):
+    user_id = get_user_id(request)
+    success = database.delete_memory(memory_id, user_id=user_id)
     if not success:
         raise HTTPException(status_code=404, detail="Memory not found")
     return {"success": True}
 
 @app.post("/api/memories/test-retrieval")
-async def test_retrieval(query: str, top_k: int = 5):
-    results = retrieve_relevant_memories(query, top_k=top_k)
+async def test_retrieval(query: str, request: Request, top_k: int = 5):
+    user_id = get_user_id(request)
+    results = retrieve_relevant_memories(query, top_k=top_k, user_id=user_id)
     return {"query": query, "retrieved": results, "count": len(results)}
 
-# --- Profile & Persona Endpoints ---
+# --- Profile & Persona Endpoints (Scoped per User) ---
 
 @app.get("/api/profile")
-async def get_user_profile():
-    return {"profile": database.get_profile()}
+async def get_user_profile(request: Request):
+    user_id = get_user_id(request)
+    return {"profile": database.get_profile(user_id=user_id), "user_id": user_id}
 
 @app.post("/api/profile")
-async def update_user_profile(payload: ProfileUpdateRequest):
-    database.set_profile_field(payload.key, payload.value, payload.category)
-    return {"success": True, "profile": database.get_profile()}
+async def update_user_profile(payload: ProfileUpdateRequest, request: Request):
+    user_id = get_user_id(request)
+    database.set_profile_field(payload.key, payload.value, payload.category, user_id=user_id)
+    return {"success": True, "profile": database.get_profile(user_id=user_id)}
 
 @app.delete("/api/profile/{key}")
-async def delete_user_profile_field(key: str):
-    success = database.delete_profile_field(key)
+async def delete_user_profile_field(key: str, request: Request):
+    user_id = get_user_id(request)
+    success = database.delete_profile_field(key, user_id=user_id)
     return {"success": success}
 
 @app.get("/api/persona")
-async def get_persona():
-    return {"persona": database.get_persona_config()}
+async def get_persona(request: Request):
+    user_id = get_user_id(request)
+    return {"persona": database.get_persona_config(user_id=user_id), "user_id": user_id}
 
 @app.post("/api/persona")
-async def update_persona(payload: PersonaUpdateRequest):
-    database.save_persona_config(payload.model_dump())
-    return {"success": True, "persona": database.get_persona_config()}
+async def update_persona(payload: PersonaUpdateRequest, request: Request):
+    user_id = get_user_id(request)
+    database.save_persona_config(payload.model_dump(), user_id=user_id)
+    return {"success": True, "persona": database.get_persona_config(user_id=user_id)}
 
 @app.post("/api/onboarding")
-async def onboarding_endpoint(payload: OnboardingRequest):
+async def onboarding_endpoint(payload: OnboardingRequest, request: Request):
+    # Determine user_id
+    user_id = (payload.user_id or request.headers.get("X-User-Id") or f"usr_{uuid.uuid4().hex[:10]}").strip()
     name = payload.name.strip()
     nickname = (payload.preferred_nickname or name).strip()
     
-    # 1. Update core profile fields
-    database.set_profile_field("name", name, "identity")
-    database.set_profile_field("preferred_nickname", nickname, "identity")
-    if payload.occupation and payload.occupation.strip():
-        database.set_profile_field("occupation", payload.occupation.strip(), "work")
-    if payload.primary_goals and payload.primary_goals.strip():
-        database.set_profile_field("primary_goals", payload.primary_goals.strip(), "goals")
-    if payload.communication_preference and payload.communication_preference.strip():
-        database.set_profile_field("communication_preference", payload.communication_preference.strip(), "preferences")
+    # 1. Register/update user record
+    database.create_or_update_user(user_id=user_id, name=name, nickname=nickname)
 
-    # 2. Update persona config with user name and preset
-    persona = database.get_persona_config()
+    # 2. Update core profile fields for this user
+    database.set_profile_field("name", name, "identity", user_id=user_id)
+    database.set_profile_field("preferred_nickname", nickname, "identity", user_id=user_id)
+    if payload.occupation and payload.occupation.strip():
+        database.set_profile_field("occupation", payload.occupation.strip(), "work", user_id=user_id)
+    if payload.primary_goals and payload.primary_goals.strip():
+        database.set_profile_field("primary_goals", payload.primary_goals.strip(), "goals", user_id=user_id)
+    if payload.communication_preference and payload.communication_preference.strip():
+        database.set_profile_field("communication_preference", payload.communication_preference.strip(), "preferences", user_id=user_id)
+
+    # 3. Update persona config with user name and preset for this user
+    persona = database.get_persona_config(user_id=user_id)
     persona["user_name"] = nickname
     if payload.tone_preset:
         persona["tone_preset"] = payload.tone_preset
-    database.save_persona_config(persona)
+    database.save_persona_config(persona, user_id=user_id)
 
-    # 3. Seed initial memory facts into vault
+    # 4. Seed initial memory facts into vault for this user
     if payload.occupation and payload.occupation.strip():
-        add_or_update_memory(f"User works as: {payload.occupation.strip()}", category="work", importance=0.85)
+        add_or_update_memory(f"User works as: {payload.occupation.strip()}", category="work", importance=0.85, user_id=user_id)
     if payload.primary_goals and payload.primary_goals.strip():
-        add_or_update_memory(f"User's primary goal is: {payload.primary_goals.strip()}", category="goal", importance=0.9)
+        add_or_update_memory(f"User's primary goal is: {payload.primary_goals.strip()}", category="goal", importance=0.9, user_id=user_id)
     if payload.communication_preference and payload.communication_preference.strip():
-        add_or_update_memory(f"User prefers communication that is: {payload.communication_preference.strip()}", category="preference", importance=0.8)
+        add_or_update_memory(f"User prefers communication that is: {payload.communication_preference.strip()}", category="preference", importance=0.8, user_id=user_id)
 
     return {
         "success": True,
+        "user_id": user_id,
         "user_name": nickname,
-        "profile": database.get_profile(),
-        "persona": database.get_persona_config()
+        "profile": database.get_profile(user_id=user_id),
+        "persona": database.get_persona_config(user_id=user_id)
     }
 
-# --- Sessions & History ---
+# --- Sessions & History (Scoped per User) ---
 
 @app.get("/api/sessions")
-async def list_sessions():
-    return {"sessions": database.get_sessions()}
+async def list_sessions(request: Request):
+    user_id = get_user_id(request)
+    return {"sessions": database.get_sessions(user_id=user_id)}
 
 @app.get("/api/sessions/{session_id}/messages")
 async def get_session_history(session_id: str):
@@ -298,8 +342,9 @@ async def get_session_history(session_id: str):
     return {"session_id": session_id, "messages": messages}
 
 @app.delete("/api/sessions/{session_id}")
-async def delete_chat_session(session_id: str):
-    success = database.delete_session(session_id)
+async def delete_chat_session(session_id: str, request: Request):
+    user_id = get_user_id(request)
+    success = database.delete_session(session_id, user_id=user_id)
     return {"success": success}
 
 @app.put("/api/sessions/{session_id}/title")
@@ -307,7 +352,7 @@ async def update_session_title(session_id: str, title: str):
     database.update_session_title(session_id, title)
     return {"success": True}
 
-# --- Settings & Configuration ---
+# --- Settings & Configuration (Shared System Settings) ---
 
 @app.get("/api/settings")
 async def get_settings():
@@ -342,14 +387,15 @@ async def save_settings(payload: SettingsUpdateRequest):
         conn.commit()
     return {"success": True}
 
-# --- Backup & Restore ---
+# --- Backup & Restore (Scoped per User) ---
 
 @app.get("/api/export")
-async def export_data():
-    memories = database.get_all_memories()
-    profile = database.get_profile()
-    persona = database.get_persona_config()
-    sessions = database.get_sessions()
+async def export_data(request: Request):
+    user_id = get_user_id(request)
+    memories = database.get_all_memories(user_id=user_id)
+    profile = database.get_profile(user_id=user_id)
+    persona = database.get_persona_config(user_id=user_id)
+    sessions = database.get_sessions(user_id=user_id)
     
     all_chats = {}
     for s in sessions:
@@ -359,7 +405,8 @@ async def export_data():
         }
 
     export_obj = {
-        "version": "1.0",
+        "version": "2.0",
+        "user_id": user_id,
         "exported_at": str(asyncio.get_event_loop().time()),
         "user_profile": profile,
         "persona": persona,
@@ -370,23 +417,25 @@ async def export_data():
 
 @app.post("/api/import")
 async def import_data(request: Request):
+    user_id = get_user_id(request)
     data = await request.json()
     # Import profile
     for k, v in data.get("user_profile", {}).items():
         val = v.get("value") if isinstance(v, dict) else str(v)
         cat = v.get("category", "general") if isinstance(v, dict) else "general"
-        database.set_profile_field(k, val, cat)
+        database.set_profile_field(k, val, cat, user_id=user_id)
 
     # Import persona
     if "persona" in data:
-        database.save_persona_config(data["persona"])
+        database.save_persona_config(data["persona"], user_id=user_id)
 
     # Import memories
     for m in data.get("memories", []):
         add_or_update_memory(
             content=m.get("content", ""),
             category=m.get("category", "fact"),
-            importance=m.get("importance", 0.5)
+            importance=m.get("importance", 0.5),
+            user_id=user_id
         )
 
     return {"success": True, "imported_memories_count": len(data.get("memories", []))}

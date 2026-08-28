@@ -1,17 +1,32 @@
-// Aegis Personal AI Frontend Application — 2026 Aesthetic Edition
+// Aegis Personal AI Frontend Application — 2026 Multi-User Tenant Edition
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- State ---
     let state = {
+        userId: localStorage.getItem('aegis_user_id') || ('usr_' + Math.random().toString(36).substring(2, 10)),
         activeTab: 'chat-tab',
         sessionId: localStorage.getItem('aegis_session_id') || null,
         memories: [],
         profile: {},
         persona: {},
         settings: {},
+        users: [],
         selectedCategory: 'all',
         isStreaming: false
     };
+
+    // Save active userId
+    localStorage.setItem('aegis_user_id', state.userId);
+
+    // --- Helper: Centralized API Fetch with User-Id Header ---
+    async function apiFetch(url, options = {}) {
+        const headers = {
+            'Content-Type': 'application/json',
+            'X-User-Id': state.userId,
+            ...(options.headers || {})
+        };
+        return fetch(url, { ...options, headers });
+    }
 
     // --- DOM Elements ---
     const navItems = document.querySelectorAll('.nav-item');
@@ -113,6 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSkipOnboarding = document.getElementById('btn-skip-onboarding');
     const btnSwitchUser = document.getElementById('btn-switch-user');
 
+    // User Switch Modal Elements
+    const userSwitchModal = document.getElementById('user-switch-modal');
+    const usersProfileList = document.getElementById('users-profile-list');
+    const btnCloseSwitchModal = document.getElementById('btn-close-switch-modal');
+    const btnCancelSwitchModal = document.getElementById('btn-cancel-switch-modal');
+    const btnCreateNewUserProfile = document.getElementById('btn-create-new-user-profile');
+
     // --- Helper: Toast Notification ---
     function showToast(message, type = 'success') {
         const container = document.getElementById('toast-container');
@@ -125,273 +147,140 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Navigation Tabs ---
     function switchTab(targetTab) {
-        navItems.forEach(n => n.classList.remove('active'));
-        tabPanes.forEach(p => p.classList.remove('active'));
-        
-        const activeNav = document.querySelector(`.nav-item[data-tab="${targetTab}"]`);
-        if (activeNav) activeNav.classList.add('active');
-        
-        const activePane = document.getElementById(targetTab);
-        if (activePane) activePane.classList.add('active');
         state.activeTab = targetTab;
+        navItems.forEach(item => {
+            if (item.getAttribute('data-tab') === targetTab) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        tabPanes.forEach(pane => {
+            if (pane.id === targetTab) {
+                pane.classList.add('active');
+            } else {
+                pane.classList.remove('active');
+            }
+        });
 
         if (targetTab === 'memory-tab') loadMemories();
-        if (targetTab === 'persona-tab') loadPersona();
         if (targetTab === 'profile-tab') loadProfile();
+        if (targetTab === 'persona-tab') loadPersona();
         if (targetTab === 'settings-tab') loadSettings();
     }
 
     navItems.forEach(item => {
         item.addEventListener('click', () => {
-            switchTab(item.getAttribute('data-tab'));
+            const target = item.getAttribute('data-tab');
+            switchTab(target);
         });
     });
-
-    if (btnQuickMemory) {
-        btnQuickMemory.addEventListener('click', () => {
-            switchTab('memory-tab');
-        });
-    }
-
-    // --- Slider Value Sync & Live Voice Preview ---
-    function updateLiveVoicePreview() {
-        const warmth = parseInt(sliderWarmth.value);
-        const humor = parseInt(sliderHumor.value);
-        const directness = parseInt(sliderDirectness.value);
-        const formality = parseInt(sliderFormality.value);
-        const emojis = personaEmojis.checked;
-        const name = personaUserName.value.trim() || 'Bhavik';
-
-        let text = "";
-        if (formality >= 70) {
-            text = `Good day, ${name}. I have reviewed our ongoing objectives. How shall we prioritize our focus today?`;
-        } else if (humor >= 70 && warmth >= 70) {
-            text = `Hey ${name}! Ready to conquer the universe today, or are we fueling up with another coffee first? ${emojis ? '☕🚀' : ''}`;
-        } else if (directness >= 75) {
-            text = `Hey ${name}. Let's get straight to it: what are we tackling next?`;
-        } else if (warmth >= 75) {
-            text = `Hey ${name}! Always great to chat with you. How is your day going? I'm right here whenever you need me. ${emojis ? '✨' : ''}`;
-        } else {
-            text = `Hey ${name}! Great to see you. How did your coding session go? Ready to dive into your next big milestone?`;
-        }
-
-        if (voicePreviewText) {
-            voicePreviewText.textContent = `"${text}"`;
-        }
-    }
-
-    function bindSlider(slider, valEl) {
-        slider.addEventListener('input', () => {
-            valEl.textContent = `${slider.value}%`;
-            updateLiveVoicePreview();
-        });
-    }
-    bindSlider(sliderWarmth, document.getElementById('val-warmth'));
-    bindSlider(sliderHumor, document.getElementById('val-humor'));
-    bindSlider(sliderDirectness, document.getElementById('val-directness'));
-    bindSlider(sliderFormality, document.getElementById('val-formality'));
-    personaEmojis.addEventListener('change', updateLiveVoicePreview);
-    personaUserName.addEventListener('input', updateLiveVoicePreview);
-
-    // --- Persona Presets Preset Map ---
-    const presetDefaults = {
-        "Empathetic Companion": { warmth: 85, humor: 50, directness: 50, formality: 25, emojis: true },
-        "Tech Mentor": { warmth: 60, humor: 40, directness: 80, formality: 40, emojis: false },
-        "Candid Best Friend": { warmth: 80, humor: 85, directness: 80, formality: 10, emojis: true },
-        "Executive Assistant": { warmth: 45, humor: 20, directness: 95, formality: 80, emojis: false },
-        "Philosopher": { warmth: 70, humor: 35, directness: 40, formality: 60, emojis: false }
-    };
-
-    presetCards.forEach(card => {
-        card.addEventListener('click', () => {
-            presetCards.forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
-            const presetName = card.getAttribute('data-preset');
-            const conf = presetDefaults[presetName];
-            if (conf) {
-                sliderWarmth.value = conf.warmth;
-                document.getElementById('val-warmth').textContent = `${conf.warmth}%`;
-                sliderHumor.value = conf.humor;
-                document.getElementById('val-humor').textContent = `${conf.humor}%`;
-                sliderDirectness.value = conf.directness;
-                document.getElementById('val-directness').textContent = `${conf.directness}%`;
-                sliderFormality.value = conf.formality;
-                document.getElementById('val-formality').textContent = `${conf.formality}%`;
-                personaEmojis.checked = conf.emojis;
-                updateLiveVoicePreview();
-            }
-        });
-    });
-
-    // --- API Calls & Data Loaders ---
-
-    async function loadPersona() {
-        try {
-            const res = await fetch('/api/persona');
-            const data = await res.json();
-            state.persona = data.persona;
-
-            personaAiName.value = state.persona.ai_name || 'Aegis';
-            personaUserName.value = state.persona.user_name || 'Bhavik';
-            sidebarAiName.textContent = state.persona.ai_name || 'Aegis';
-            sidebarPersonaPreset.textContent = state.persona.tone_preset || 'Empathetic Companion';
-            
-            if (welcomeUserName) welcomeUserName.textContent = state.persona.user_name || 'Bhavik';
-            if (welcomeTonePreset) welcomeTonePreset.textContent = state.persona.tone_preset || 'Companion';
-
-            sliderWarmth.value = state.persona.warmth ?? 80;
-            document.getElementById('val-warmth').textContent = `${sliderWarmth.value}%`;
-            sliderHumor.value = state.persona.humor ?? 50;
-            document.getElementById('val-humor').textContent = `${sliderHumor.value}%`;
-            sliderDirectness.value = state.persona.directness ?? 60;
-            document.getElementById('val-directness').textContent = `${sliderDirectness.value}%`;
-            sliderFormality.value = state.persona.formality ?? 30;
-            document.getElementById('val-formality').textContent = `${sliderFormality.value}%`;
-            personaEmojis.checked = state.persona.use_emojis ?? true;
-            personaCustomInstructions.value = state.persona.custom_instructions || '';
-
-            presetCards.forEach(card => {
-                if (card.getAttribute('data-preset') === state.persona.tone_preset) {
-                    card.classList.add('active');
-                } else {
-                    card.classList.remove('active');
-                }
-            });
-
-            updateLiveVoicePreview();
-        } catch (e) {
-            console.error('Error loading persona:', e);
-        }
-    }
-
-    async function savePersona() {
-        const activePresetCard = document.querySelector('.preset-card.active');
-        const presetName = activePresetCard ? activePresetCard.getAttribute('data-preset') : 'Empathetic Companion';
-
-        const payload = {
-            ai_name: personaAiName.value.trim(),
-            user_name: personaUserName.value.trim(),
-            tone_preset: presetName,
-            warmth: parseInt(sliderWarmth.value),
-            humor: parseInt(sliderHumor.value),
-            directness: parseInt(sliderDirectness.value),
-            formality: parseInt(sliderFormality.value),
-            use_emojis: personaEmojis.checked,
-            custom_instructions: personaCustomInstructions.value.trim()
-        };
-
-        try {
-            const res = await fetch('/api/persona', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (res.ok) {
-                showToast('Persona updated successfully!');
-                loadPersona();
-            }
-        } catch (e) {
-            showToast('Failed to save persona', 'error');
-        }
-    }
-    btnSavePersona.addEventListener('click', savePersona);
 
     // --- Memory Vault Operations ---
 
     async function loadMemories() {
         try {
-            let url = `/api/memories?category=${state.selectedCategory}`;
-            if (memorySearchInput.value.trim()) {
-                url += `&search=${encodeURIComponent(memorySearchInput.value.trim())}`;
-            }
-            const res = await fetch(url);
+            const res = await apiFetch(`/api/memories?category=${state.selectedCategory}`);
             const data = await res.json();
             state.memories = data.memories || [];
             
-            const count = data.count || state.memories.length;
-            memoryCountBadge.textContent = count;
-            if (metricTotalMemories) metricTotalMemories.textContent = count;
-            if (welcomeMemCount) welcomeMemCount.textContent = count;
-            if (searchMatchCount) searchMatchCount.textContent = `${state.memories.length} item${state.memories.length === 1 ? '' : 's'}`;
+            if (memoryCountBadge) memoryCountBadge.textContent = state.memories.length;
+            if (metricTotalMemories) metricTotalMemories.textContent = state.memories.length;
+            if (welcomeMemCount) welcomeMemCount.textContent = state.memories.length;
 
-            renderMemories();
+            renderMemories(state.memories);
         } catch (e) {
             console.error('Error loading memories:', e);
         }
     }
 
-    function renderMemories() {
+    function renderMemories(memories) {
         memoriesGrid.innerHTML = '';
-        if (state.memories.length === 0) {
+        if (memories.length === 0) {
             memoriesGrid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 50px 20px; color: var(--text-muted);">
-                    <i class="fa-solid fa-brain-circuit" style="font-size: 38px; margin-bottom: 14px; opacity: 0.4; color: var(--primary-light);"></i>
-                    <h4 style="font-family: var(--font-heading); font-size: 16px; color: #fff; margin-bottom: 6px;">No Memories Found</h4>
-                    <p style="font-size: 13px; max-width: 360px; margin: 0 auto;">Start chatting naturally or click "Add New Memory" to seed your personal knowledge vault.</p>
+                <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text-dim);">
+                    <i class="fa-solid fa-brain" style="font-size: 36px; margin-bottom: 12px; opacity: 0.5;"></i>
+                    <p style="font-size: 15px;">No memories stored yet in this category.</p>
+                    <p style="font-size: 13px;">Chat with your AI companion or click "Add Memory" to store facts.</p>
                 </div>
             `;
             return;
         }
 
-        state.memories.forEach(mem => {
+        memories.forEach(mem => {
             const card = document.createElement('div');
             card.className = 'memory-card';
-            const cat = mem.category || 'fact';
-            const dateStr = mem.created_at ? new Date(mem.created_at).toLocaleDateString() : '';
+            
+            const cat = (mem.category || 'fact').toLowerCase();
+            const dateStr = mem.created_at ? new Date(mem.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
             const importancePct = Math.round((mem.importance || 0.5) * 100);
 
             card.innerHTML = `
-                <div>
-                    <div class="memory-card-header">
-                        <span class="cat-badge ${cat}">${cat}</span>
-                        <span style="font-size: 11px; color: var(--cyan); font-weight: 600;">
-                            <i class="fa-solid fa-gauge-high"></i> ${importancePct}% weight
-                        </span>
-                    </div>
-                    <div class="memory-content" style="margin-top: 12px;">${escapeHtml(mem.content)}</div>
+                <div class="memory-card-header">
+                    <span class="cat-badge ${cat}">${cat}</span>
+                    <span style="font-size: 11px; color: var(--text-dim); font-weight: 600;">⭐ ${importancePct}%</span>
                 </div>
+                <div class="memory-content">${escapeHtml(mem.content)}</div>
                 <div class="memory-card-footer">
-                    <span>${dateStr ? `<i class="fa-regular fa-calendar"></i> ${dateStr}` : ''}</span>
+                    <span><i class="fa-regular fa-clock"></i> ${dateStr}</span>
                     <div class="memory-actions">
                         <button class="icon-btn edit-mem-btn" data-id="${mem.id}" title="Edit Memory"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button class="icon-btn danger delete-mem-btn" data-id="${mem.id}" title="Forget Memory"><i class="fa-solid fa-trash"></i></button>
+                        <button class="icon-btn danger delete-mem-btn" data-id="${mem.id}" title="Delete Memory"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
             `;
             memoriesGrid.appendChild(card);
         });
 
-        // Bind delete & edit
+        // Bind Edit & Delete
+        document.querySelectorAll('.edit-mem-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = parseInt(btn.getAttribute('data-id'));
+                const mem = state.memories.find(m => m.id === id);
+                if (mem) {
+                    editMemoryId.value = mem.id;
+                    modalMemoryContent.value = mem.content;
+                    modalMemoryCategory.value = mem.category || 'fact';
+                    modalMemoryImportance.value = mem.importance || 0.8;
+                    memoryModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Memory Fact';
+                    memoryModal.classList.remove('hidden');
+                }
+            });
+        });
+
         document.querySelectorAll('.delete-mem-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');
-                if (confirm('Are you sure you want the AI to forget this memory?')) {
-                    const res = await fetch(`/api/memories/${id}`, { method: 'DELETE' });
+                if (confirm('Delete this memory from your AI companion vault?')) {
+                    const res = await apiFetch(`/api/memories/${id}`, { method: 'DELETE' });
                     if (res.ok) {
-                        showToast('Memory forgotten');
+                        showToast('Memory successfully deleted');
                         loadMemories();
                     }
                 }
             });
         });
+    }
 
-        document.querySelectorAll('.edit-mem-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const id = parseInt(btn.getAttribute('data-id'));
-                const memory = state.memories.find(m => m.id === id);
-                if (memory) {
-                    editMemoryId.value = memory.id;
-                    modalMemoryContent.value = memory.content;
-                    modalMemoryCategory.value = memory.category || 'fact';
-                    modalMemoryImportance.value = memory.importance || 0.8;
-                    memoryModalTitle.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Edit Memory';
-                    memoryModal.classList.remove('hidden');
-                }
-            });
+    // Memory Search & Filter
+    if (memorySearchInput) {
+        memorySearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            if (!query) {
+                renderMemories(state.memories);
+                if (searchMatchCount) searchMatchCount.textContent = '';
+                return;
+            }
+            const filtered = state.memories.filter(m => 
+                m.content.toLowerCase().includes(query) || 
+                (m.category && m.category.toLowerCase().includes(query))
+            );
+            renderMemories(filtered);
+            if (searchMatchCount) searchMatchCount.textContent = `${filtered.length} match${filtered.length === 1 ? '' : 'es'}`;
         });
     }
 
-    // Category filter pills
     filterPills.forEach(pill => {
         pill.addEventListener('click', () => {
             filterPills.forEach(p => p.classList.remove('active'));
@@ -401,94 +290,229 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    memorySearchInput.addEventListener('input', () => {
-        loadMemories();
-    });
-
-    // Add / Edit Memory Modal handlers
-    btnOpenAddMemory.addEventListener('click', () => {
+    // Add / Edit Memory Modal Handlers
+    function openNewMemoryModal() {
         editMemoryId.value = '';
         modalMemoryContent.value = '';
-        modalMemoryCategory.value = 'preference';
+        modalMemoryCategory.value = 'fact';
         modalMemoryImportance.value = '0.8';
-        memoryModalTitle.innerHTML = '<i class="fa-solid fa-microchip"></i> Add New Memory';
+        memoryModalTitle.innerHTML = '<i class="fa-solid fa-brain"></i> Add New Memory';
         memoryModal.classList.remove('hidden');
-    });
+    }
 
-    btnCloseMemoryModal.addEventListener('click', () => memoryModal.classList.add('hidden'));
-    btnCancelMemoryModal.addEventListener('click', () => memoryModal.classList.add('hidden'));
+    if (btnOpenAddMemory) btnOpenAddMemory.addEventListener('click', openNewMemoryModal);
+    if (btnQuickMemory) btnQuickMemory.addEventListener('click', openNewMemoryModal);
 
-    btnSaveMemoryModal.addEventListener('click', async () => {
-        const content = modalMemoryContent.value.trim();
-        if (!content) {
-            alert('Please enter memory content.');
-            return;
-        }
-        const category = modalMemoryCategory.value;
-        const importance = parseFloat(modalMemoryImportance.value);
-        const id = editMemoryId.value;
+    if (btnCloseMemoryModal) btnCloseMemoryModal.addEventListener('click', () => memoryModal.classList.add('hidden'));
+    if (btnCancelMemoryModal) btnCancelMemoryModal.addEventListener('click', () => memoryModal.classList.add('hidden'));
 
-        if (id) {
-            // Update
-            const res = await fetch(`/api/memories/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content, category, importance })
-            });
-            if (res.ok) {
-                showToast('Memory updated in vault!');
-                memoryModal.classList.add('hidden');
-                loadMemories();
+    if (btnSaveMemoryModal) {
+        btnSaveMemoryModal.addEventListener('click', async () => {
+            const content = modalMemoryContent.value.trim();
+            const category = modalMemoryCategory.value;
+            const importance = parseFloat(modalMemoryImportance.value) || 0.8;
+            const id = editMemoryId.value;
+
+            if (!content) {
+                alert('Please enter the memory text.');
+                return;
             }
-        } else {
-            // Create
-            const res = await fetch('/api/memories', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content, category, importance })
-            });
-            if (res.ok) {
-                showToast('Memory saved to vault!');
-                memoryModal.classList.add('hidden');
-                loadMemories();
-            }
-        }
-    });
 
-    // Test Memory Retrieval
-    btnTestRetrieval.addEventListener('click', async () => {
-        const query = retrievalQuery.value.trim();
-        if (!query) return;
-        try {
-            const res = await fetch(`/api/memories/test-retrieval?query=${encodeURIComponent(query)}`, { method: 'POST' });
-            const data = await res.json();
-            retrievalResults.classList.remove('hidden');
-            if (!data.retrieved || data.retrieved.length === 0) {
-                retrievalResults.innerHTML = `<span style="font-size: 12px; color: var(--text-muted);">No matching memories found for this query.</span>`;
-            } else {
-                let html = `<span style="font-size: 12px; color: var(--cyan); font-weight: 700;"><i class="fa-solid fa-sparkles"></i> Top ${data.retrieved.length} Memories Recalled for Query:</span>`;
-                data.retrieved.forEach((m) => {
-                    html += `<div style="font-size: 12.5px; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; margin-top: 6px; border-left: 3px solid var(--cyan);">
-                        <strong>[${m.category.toUpperCase()}]</strong> ${escapeHtml(m.content)}
-                    </div>`;
+            if (id) {
+                // Update
+                const res = await apiFetch(`/api/memories/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ content, category, importance })
                 });
-                retrievalResults.innerHTML = html;
+                if (res.ok) {
+                    showToast('Memory updated');
+                    memoryModal.classList.add('hidden');
+                    loadMemories();
+                }
+            } else {
+                // Create
+                const res = await apiFetch('/api/memories', {
+                    method: 'POST',
+                    body: JSON.stringify({ content, category, importance })
+                });
+                if (res.ok) {
+                    showToast('New memory saved to AI brain');
+                    memoryModal.classList.add('hidden');
+                    loadMemories();
+                }
             }
+        });
+    }
+
+    // Neural Retrieval Interactive Tester
+    if (btnTestRetrieval) {
+        btnTestRetrieval.addEventListener('click', async () => {
+            const query = retrievalQuery.value.trim();
+            if (!query) return;
+
+            retrievalResults.classList.remove('hidden');
+            retrievalResults.innerHTML = '<span style="color: var(--cyan); font-size: 13px;"><i class="fa-solid fa-spinner fa-spin"></i> Scoring semantic embeddings & keywords...</span>';
+
+            const res = await apiFetch('/api/memories/test-retrieval', {
+                method: 'POST',
+                body: JSON.stringify({ query })
+            });
+            const data = await res.json();
+            
+            if (!data.retrieved || data.retrieved.length === 0) {
+                retrievalResults.innerHTML = '<span style="color: var(--text-dim); font-size: 13px;">No memory triggered above retrieval threshold.</span>';
+                return;
+            }
+
+            let html = '<div style="display: flex; flex-direction: column; gap: 6px;">';
+            data.retrieved.forEach((m, idx) => {
+                html += `
+                    <div style="background: var(--bg-surface); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 13px;">
+                        <span style="color: var(--cyan); font-weight: 700;">#${idx + 1} [${m.category.toUpperCase()}]:</span> ${escapeHtml(m.content)}
+                    </div>
+                `;
+            });
+            html += '</div>';
+            retrievalResults.innerHTML = html;
+        });
+    }
+
+    // --- Persona Studio & Tone Tuning ---
+
+    async function loadPersona() {
+        try {
+            const res = await apiFetch('/api/persona');
+            const data = await res.json();
+            state.persona = data.persona || {};
+
+            personaAiName.value = state.persona.ai_name || 'Aegis';
+            personaUserName.value = state.persona.user_name || 'Bhavik';
+            sliderWarmth.value = state.persona.warmth || 80;
+            sliderHumor.value = state.persona.humor || 50;
+            sliderDirectness.value = state.persona.directness || 60;
+            sliderFormality.value = state.persona.formality || 30;
+            personaEmojis.checked = state.persona.use_emojis !== false;
+            personaCustomInstructions.value = state.persona.custom_instructions || '';
+
+            // Update UI widgets
+            if (sidebarAiName) sidebarAiName.textContent = state.persona.ai_name || 'Aegis';
+            if (sidebarPersonaPreset) sidebarPersonaPreset.textContent = state.persona.tone_preset || 'Empathetic Companion';
+            if (welcomeUserName) welcomeUserName.textContent = state.persona.user_name || 'Bhavik';
+            if (welcomeTonePreset) welcomeTonePreset.textContent = state.persona.tone_preset || 'Empathetic Companion';
+
+            document.getElementById('val-warmth').textContent = `${sliderWarmth.value}%`;
+            document.getElementById('val-humor').textContent = `${sliderHumor.value}%`;
+            document.getElementById('val-directness').textContent = `${sliderDirectness.value}%`;
+            document.getElementById('val-formality').textContent = `${sliderFormality.value}%`;
+
+            // Active Preset Card highlight
+            presetCards.forEach(card => {
+                if (card.getAttribute('data-preset') === state.persona.tone_preset) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+
+            updateVoicePreview();
         } catch (e) {
-            console.error(e);
+            console.error('Error loading persona:', e);
+        }
+    }
+
+    function updateVoicePreview() {
+        const name = personaUserName.value.trim() || 'Bhavik';
+        const warmth = parseInt(sliderWarmth.value);
+        const directness = parseInt(sliderDirectness.value);
+        const emojis = personaEmojis.checked;
+
+        let sample = '';
+        if (directness >= 75) {
+            sample = `"Ready when you are, ${name}. Let's execute your top goals efficiently today."`;
+        } else if (warmth >= 70) {
+            sample = `"Hey ${name}! ${emojis ? '✨' : ''} Great to see you. How did your work go today? I'm always right here in your corner!"`;
+        } else {
+            sample = `"Hello ${name}. Ready to assist with your active projects and code architecture."`;
+        }
+        if (voicePreviewText) voicePreviewText.textContent = sample;
+    }
+
+    [sliderWarmth, sliderHumor, sliderDirectness, sliderFormality].forEach(slider => {
+        slider.addEventListener('input', () => {
+            const id = slider.id.replace('slider-', 'val-');
+            const label = document.getElementById(id);
+            if (label) label.textContent = `${slider.value}%`;
+            updateVoicePreview();
+        });
+    });
+
+    personaUserName.addEventListener('input', updateVoicePreview);
+    personaEmojis.addEventListener('change', updateVoicePreview);
+
+    presetCards.forEach(card => {
+        card.addEventListener('click', () => {
+            presetCards.forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            const preset = card.getAttribute('data-preset');
+            
+            // Adjust slider presets
+            if (preset === 'Empathetic Companion') {
+                sliderWarmth.value = 85; sliderHumor.value = 50; sliderDirectness.value = 50; sliderFormality.value = 25;
+            } else if (preset === 'Tech Mentor') {
+                sliderWarmth.value = 60; sliderHumor.value = 35; sliderDirectness.value = 80; sliderFormality.value = 40;
+            } else if (preset === 'Candid Best Friend') {
+                sliderWarmth.value = 80; sliderHumor.value = 90; sliderDirectness.value = 70; sliderFormality.value = 10;
+            } else if (preset === 'Executive Assistant') {
+                sliderWarmth.value = 40; sliderHumor.value = 20; sliderDirectness.value = 95; sliderFormality.value = 80;
+            } else if (preset === 'Philosopher') {
+                sliderWarmth.value = 70; sliderHumor.value = 40; sliderDirectness.value = 35; sliderFormality.value = 60;
+            }
+
+            document.getElementById('val-warmth').textContent = `${sliderWarmth.value}%`;
+            document.getElementById('val-humor').textContent = `${sliderHumor.value}%`;
+            document.getElementById('val-directness').textContent = `${sliderDirectness.value}%`;
+            document.getElementById('val-formality').textContent = `${sliderFormality.value}%`;
+            updateVoicePreview();
+        });
+    });
+
+    btnSavePersona.addEventListener('click', async () => {
+        const activeCard = document.querySelector('.preset-card.active');
+        const preset = activeCard ? activeCard.getAttribute('data-preset') : 'Empathetic Companion';
+
+        const payload = {
+            ai_name: personaAiName.value.trim() || 'Aegis',
+            user_name: personaUserName.value.trim() || 'Bhavik',
+            tone_preset: preset,
+            warmth: parseInt(sliderWarmth.value),
+            humor: parseInt(sliderHumor.value),
+            directness: parseInt(sliderDirectness.value),
+            formality: parseInt(sliderFormality.value),
+            use_emojis: personaEmojis.checked,
+            custom_instructions: personaCustomInstructions.value.trim()
+        };
+
+        const res = await apiFetch('/api/persona', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            showToast('Persona demeanor & tone saved!');
+            loadPersona();
         }
     });
 
-    // --- Profile & Identity Operations ---
+    // --- User Identity Profile Operations ---
 
     async function loadProfile() {
         try {
-            const res = await fetch('/api/profile');
+            const res = await apiFetch('/api/profile');
             const data = await res.json();
             state.profile = data.profile || {};
             
-            const nameVal = state.profile.name ? (state.profile.name.value || 'Bhavik') : 'Bhavik';
-            const goalsVal = state.profile.primary_goals ? (state.profile.primary_goals.value || 'Building cutting-edge systems') : 'Building AI systems';
+            const nameVal = state.profile.name ? (state.profile.name.value || 'Bhavik') : (state.persona.user_name || 'Bhavik');
+            const goalsVal = state.profile.primary_goals ? (state.profile.primary_goals.value || 'Building cutting-edge AI systems') : 'Building AI systems';
             
             if (profileHeroName) profileHeroName.textContent = nameVal;
             if (profileAvatarInitial) profileAvatarInitial.textContent = nameVal.charAt(0).toUpperCase();
@@ -553,7 +577,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', async () => {
                 const k = btn.getAttribute('data-key');
                 if (confirm(`Remove profile attribute "${k}"?`)) {
-                    const res = await fetch(`/api/profile/${k}`, { method: 'DELETE' });
+                    const res = await apiFetch(`/api/profile/${k}`, { method: 'DELETE' });
                     if (res.ok) {
                         showToast('Profile field removed');
                         loadProfile();
@@ -600,12 +624,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // If renamed key, delete previous key
         if (originalKey && originalKey !== key) {
-            await fetch(`/api/profile/${originalKey}`, { method: 'DELETE' });
+            await apiFetch(`/api/profile/${originalKey}`, { method: 'DELETE' });
         }
 
-        const res = await fetch('/api/profile', {
+        const res = await apiFetch('/api/profile', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ key, value, category })
         });
 
@@ -617,9 +640,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (key === 'name' || key === 'preferred_nickname') {
                 if (state.persona) {
                     state.persona.user_name = value;
-                    await fetch('/api/persona', {
+                    await apiFetch('/api/persona', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(state.persona)
                     });
                     loadPersona();
@@ -630,11 +652,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Settings & API Configuration ---
+    // --- Settings & API Configuration (Global) ---
 
     async function loadSettings() {
         try {
-            const res = await fetch('/api/settings');
+            const res = await apiFetch('/api/settings');
             const data = await res.json();
             state.settings = data;
 
@@ -669,9 +691,8 @@ document.addEventListener('DOMContentLoaded', () => {
             openai_api_key: settingOpenaiKey.value.trim() || undefined
         };
 
-        const res = await fetch('/api/settings', {
+        const res = await apiFetch('/api/settings', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
@@ -685,13 +706,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Export / Import
     btnExportData.addEventListener('click', async () => {
-        const res = await fetch('/api/export');
+        const res = await apiFetch('/api/export');
         const data = await res.json();
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `aegis_personal_ai_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `aegis_personal_ai_backup_${state.userId}_${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
         showToast('Backup file downloaded');
@@ -704,28 +725,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = await file.text();
         try {
             const parsed = JSON.parse(text);
-            const res = await fetch('/api/import', {
+            const res = await apiFetch('/api/import', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(parsed)
             });
             if (res.ok) {
                 const data = await res.json();
-                showToast(`Restored successfully (${data.imported_memories_count} memories loaded)!`);
+                showToast(`Data restored successfully (${data.imported_memories_count} memories)`);
                 loadMemories();
                 loadProfile();
                 loadPersona();
             }
         } catch (err) {
-            showToast('Invalid JSON backup file', 'error');
+            alert('Invalid backup JSON file.');
         }
     });
 
-    // --- Chat Logic & Streaming ---
+    // --- Chat Sessions Management ---
 
     async function loadSessions() {
         try {
-            const res = await fetch('/api/sessions');
+            const res = await apiFetch('/api/sessions');
             const data = await res.json();
             renderSessionsList(data.sessions || []);
         } catch (e) {
@@ -736,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderSessionsList(sessions) {
         sessionsList.innerHTML = '';
         if (sessions.length === 0) {
-            sessionsList.innerHTML = `<div style="padding: 12px; font-size: 12px; color: var(--text-muted); text-align: center;">No past conversations yet.</div>`;
+            sessionsList.innerHTML = `<p style="padding: 12px; font-size: 13px; color: var(--text-dim);">No conversation threads yet.</p>`;
             return;
         }
 
@@ -744,18 +764,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = document.createElement('div');
             item.className = `session-item ${s.id === state.sessionId ? 'active' : ''}`;
             item.innerHTML = `
-                <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 230px;">
-                    <i class="fa-regular fa-message"></i> ${escapeHtml(s.title)}
+                <span class="session-title" title="${escapeHtml(s.title)}">
+                    <i class="fa-regular fa-message" style="margin-right: 6px;"></i> ${escapeHtml(s.title)}
                 </span>
-                <button class="icon-btn danger delete-session-btn" data-id="${s.id}" title="Delete session">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <button class="icon-btn danger delete-session-btn" data-id="${s.id}" title="Delete Chat"><i class="fa-solid fa-trash"></i></button>
             `;
-            item.addEventListener('click', (e) => {
-                if (e.target.closest('.delete-session-btn')) return;
-                switchSession(s.id, s.title);
-                sessionsDrawer.classList.remove('open');
-            });
+            item.addEventListener('click', () => switchSession(s.id, s.title));
             sessionsList.appendChild(item);
         });
 
@@ -764,7 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 const id = btn.getAttribute('data-id');
                 if (confirm('Delete this conversation?')) {
-                    await fetch(`/api/sessions/${id}`, { method: 'DELETE' });
+                    await apiFetch(`/api/sessions/${id}`, { method: 'DELETE' });
                     if (state.sessionId === id) startNewChat();
                     loadSessions();
                 }
@@ -778,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentChatTitle.textContent = title || 'Conversation';
         
         // Fetch session messages
-        const res = await fetch(`/api/sessions/${sessionId}/messages`);
+        const res = await apiFetch(`/api/sessions/${sessionId}/messages`);
         const data = await res.json();
         chatMessages.innerHTML = '';
 
@@ -809,10 +823,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="floating-sparkle s1"><i class="fa-solid fa-sparkles"></i></div>
                     <div class="floating-sparkle s2"><i class="fa-solid fa-heart"></i></div>
                 </div>
-                <div class="welcome-tag">Personal Memory Enabled</div>
-                <h2 class="welcome-greeting">Hey there, <span class="gradient-text" id="welcome-user-name">${state.persona.user_name || 'Bhavik'}</span>!</h2>
+                <div class="welcome-tag">Personal Memory Vault Active</div>
+                <h2 class="welcome-greeting">Hey there, <span class="gradient-text" id="welcome-user-name">${state.persona.user_name || 'Friend'}</span>!</h2>
                 <p class="welcome-desc">
-                    I am your personal companion. Everything you share about your code, projects, food, habits, and ideas stays safely remembered in your vault!
+                    I am your dedicated personal AI companion. Everything you share about your code, projects, food, habits, and ideas stays safely remembered in your isolated vault!
                 </p>
 
                 <div class="welcome-stats">
@@ -826,7 +840,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="stat-pill">
                         <i class="fa-solid fa-database"></i>
-                        <span>Vault: <strong>Local SQLite</strong></span>
+                        <span>Vault: <strong>Private SQLite</strong></span>
                     </div>
                 </div>
 
@@ -863,7 +877,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     btnCloseSessions.addEventListener('click', () => sessionsDrawer.classList.remove('open'));
 
-    // Handle textarea auto-grow and submit
+    // --- Chat SSE Streaming ---
+
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleSendMessage();
+    });
+
     chatInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -871,23 +891,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        handleSendMessage();
-    });
-
     async function handleSendMessage() {
         const text = chatInput.value.trim();
         if (!text || state.isStreaming) return;
 
-        // Clear welcome card if visible
-        const welcomeCard = document.querySelector('.welcome-card');
+        // Remove welcome card if visible
+        const welcomeCard = chatMessages.querySelector('.welcome-card');
         if (welcomeCard) welcomeCard.remove();
-
-        if (!state.sessionId) {
-            state.sessionId = 'session_' + Math.random().toString(36).substring(2, 12);
-            localStorage.setItem('aegis_session_id', state.sessionId);
-        }
 
         // 1. Append User Message
         appendMessageToUI('user', text);
@@ -902,9 +912,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let accumulatedText = '';
 
         try {
-            const response = await fetch('/api/chat', {
+            const response = await apiFetch('/api/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     session_id: state.sessionId,
                     message: text
@@ -921,7 +930,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 buffer += decoder.decode(value, { stream: true });
                 const lines = buffer.split('\n\n');
-                buffer = lines.pop(); // keep partial chunk
+                buffer = lines.pop();
 
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
@@ -934,7 +943,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                     bubble.innerHTML = renderMarkdown(accumulatedText);
                                     chatMessages.scrollTop = chatMessages.scrollHeight;
                                 } else if (event.type === 'done') {
-                                    // Finished streaming
                                     setTimeout(loadMemories, 1200);
                                 }
                             } catch (err) {
@@ -992,21 +1000,117 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#039;');
     }
 
-    // --- Onboarding & Multi-User Setup ---
-    function checkFirstTimeOnboarding() {
-        const onboarded = localStorage.getItem('aegis_onboarded');
-        if (!onboarded) {
-            setTimeout(() => {
-                const currentName = state.profile.name ? (state.profile.name.value || '') : '';
-                if (onboardName) onboardName.value = currentName === 'Bhavik' ? '' : currentName;
-                if (onboardNickname) onboardNickname.value = currentName === 'Bhavik' ? '' : currentName;
-                if (onboardingModal) onboardingModal.classList.remove('hidden');
-            }, 600);
+    // --- User Profile Switcher Operations ---
+
+    async function loadUsersList() {
+        try {
+            const res = await apiFetch('/api/users');
+            const data = await res.json();
+            state.users = data.users || [];
+            renderUsersList();
+        } catch (e) {
+            console.error('Error loading users list:', e);
         }
     }
 
+    function renderUsersList() {
+        if (!usersProfileList) return;
+        usersProfileList.innerHTML = '';
+
+        if (state.users.length === 0) {
+            usersProfileList.innerHTML = '<p style="color: var(--text-dim); padding: 10px;">No registered profiles found.</p>';
+            return;
+        }
+
+        state.users.forEach(u => {
+            const isCurrent = u.id === state.userId;
+            const item = document.createElement('div');
+            item.style.cssText = `
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 14px;
+                background: ${isCurrent ? 'linear-gradient(90deg, rgba(139, 92, 246, 0.25), rgba(6, 182, 212, 0.15))' : 'var(--bg-surface)'};
+                border: 1px solid ${isCurrent ? 'var(--primary)' : 'var(--border-card)'};
+                border-radius: var(--radius-md);
+                cursor: pointer;
+                transition: all 0.2s;
+            `;
+
+            item.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--cyan)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 14px;">
+                        ${(u.name || 'U').charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div style="font-size: 14px; font-weight: 600; color: #fff;">
+                            ${escapeHtml(u.name)} ${isCurrent ? '<span style="font-size: 11px; color: var(--emerald); background: rgba(16, 185, 129, 0.15); padding: 2px 6px; border-radius: 99px; margin-left: 6px;">Active</span>' : ''}
+                        </div>
+                        <div style="font-size: 11.5px; color: var(--text-muted);">Nickname: ${escapeHtml(u.nickname || u.name)}</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    ${!isCurrent ? `<button class="btn btn-sm btn-primary switch-to-user-btn" data-id="${u.id}">Switch</button>` : ''}
+                    ${state.users.length > 1 ? `<button class="icon-btn danger delete-user-btn" data-id="${u.id}" title="Delete User Profile"><i class="fa-solid fa-trash"></i></button>` : ''}
+                </div>
+            `;
+
+            usersProfileList.appendChild(item);
+        });
+
+        // Bind Switch
+        document.querySelectorAll('.switch-to-user-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const targetId = btn.getAttribute('data-id');
+                await switchToUser(targetId);
+            });
+        });
+
+        // Bind Delete User
+        document.querySelectorAll('.delete-user-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const targetId = btn.getAttribute('data-id');
+                if (confirm('Delete this user profile and all their isolated memories & chat history?')) {
+                    await apiFetch(`/api/users/${targetId}`, { method: 'DELETE' });
+                    showToast('User profile removed');
+                    if (state.userId === targetId) {
+                        state.userId = 'default';
+                        localStorage.setItem('aegis_user_id', 'default');
+                    }
+                    await loadUsersList();
+                    await initApp();
+                }
+            });
+        });
+    }
+
+    async function switchToUser(userId) {
+        state.userId = userId;
+        localStorage.setItem('aegis_user_id', userId);
+        if (userSwitchModal) userSwitchModal.classList.add('hidden');
+        showToast('Switched user profile');
+        await initApp();
+    }
+
     if (btnSwitchUser) {
-        btnSwitchUser.addEventListener('click', () => {
+        btnSwitchUser.addEventListener('click', async () => {
+            await loadUsersList();
+            if (userSwitchModal) userSwitchModal.classList.remove('hidden');
+        });
+    }
+
+    if (btnCloseSwitchModal) btnCloseSwitchModal.addEventListener('click', () => userSwitchModal.classList.add('hidden'));
+    if (btnCancelSwitchModal) btnCancelSwitchModal.addEventListener('click', () => userSwitchModal.classList.add('hidden'));
+
+    if (btnCreateNewUserProfile) {
+        btnCreateNewUserProfile.addEventListener('click', () => {
+            if (userSwitchModal) userSwitchModal.classList.add('hidden');
+            // Generate a fresh unique user_id for the new user
+            state.userId = 'usr_' + Math.random().toString(36).substring(2, 10);
+            localStorage.setItem('aegis_user_id', state.userId);
+            
             if (onboardName) onboardName.value = '';
             if (onboardNickname) onboardNickname.value = '';
             if (onboardOccupation) onboardOccupation.value = '';
@@ -1016,9 +1120,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Onboarding & First-Time Setup Wizard ---
+
+    function checkFirstTimeOnboarding() {
+        const onboarded = localStorage.getItem(`aegis_onboarded_${state.userId}`);
+        const hasProfileName = state.profile.name && state.profile.name.value;
+        if (!onboarded && !hasProfileName) {
+            setTimeout(() => {
+                if (onboardingModal) onboardingModal.classList.remove('hidden');
+            }, 600);
+        }
+    }
+
     if (btnSkipOnboarding) {
         btnSkipOnboarding.addEventListener('click', () => {
-            localStorage.setItem('aegis_onboarded', 'true');
+            localStorage.setItem(`aegis_onboarded_${state.userId}`, 'true');
             if (onboardingModal) onboardingModal.classList.add('hidden');
         });
     }
@@ -1055,10 +1171,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const res = await fetch('/api/onboarding', {
+                const res = await apiFetch('/api/onboarding', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        user_id: state.userId,
                         name: name,
                         preferred_nickname: nickname,
                         occupation: occupation,
@@ -1069,7 +1185,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (res.ok) {
-                    localStorage.setItem('aegis_onboarded', 'true');
+                    const data = await res.json();
+                    if (data.user_id) {
+                        state.userId = data.user_id;
+                        localStorage.setItem('aegis_user_id', state.userId);
+                    }
+                    localStorage.setItem(`aegis_onboarded_${state.userId}`, 'true');
                     if (onboardingModal) onboardingModal.classList.add('hidden');
                     showToast(`Welcome, ${nickname}! Your AI companion is personalized and ready.`);
 

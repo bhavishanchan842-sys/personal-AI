@@ -113,17 +113,60 @@ def test_api_onboarding(client):
     data = res.json()
     assert data["success"] is True
     assert data["user_name"] == "Sarah"
+    uid = data["user_id"]
 
-    # Verify profile was set
-    prof_res = client.get("/api/profile")
+    # Verify profile was set for this user
+    prof_res = client.get("/api/profile", headers={"X-User-Id": uid})
     prof = prof_res.json()["profile"]
     assert prof["name"]["value"] == "Sarah Connor"
     assert prof["preferred_nickname"]["value"] == "Sarah"
     assert prof["occupation"]["value"] == "Cybersecurity Engineer"
 
-    # Verify persona was updated
-    persona_res = client.get("/api/persona")
+    # Verify persona was updated for this user
+    persona_res = client.get("/api/persona", headers={"X-User-Id": uid})
     persona = persona_res.json()["persona"]
     assert persona["user_name"] == "Sarah"
     assert persona["tone_preset"] == "Tech Mentor"
+
+def test_api_multi_user_isolation(client):
+    # User 1: Onboard Alice
+    res1 = client.post("/api/onboarding", json={
+        "user_id": "user_alice",
+        "name": "Alice Wonderland",
+        "preferred_nickname": "Alice",
+        "occupation": "Botanist",
+        "tone_preset": "Empathetic Companion"
+    }, headers={"X-User-Id": "user_alice"})
+    assert res1.status_code == 200
+
+    # User 2: Onboard Bob
+    res2 = client.post("/api/onboarding", json={
+        "user_id": "user_bob",
+        "name": "Bob Builder",
+        "preferred_nickname": "Bob",
+        "occupation": "Architect",
+        "tone_preset": "Tech Mentor"
+    }, headers={"X-User-Id": "user_bob"})
+    assert res2.status_code == 200
+
+    # Query profile for Alice
+    prof_alice = client.get("/api/profile", headers={"X-User-Id": "user_alice"}).json()["profile"]
+    assert prof_alice["name"]["value"] == "Alice Wonderland"
+    assert prof_alice["occupation"]["value"] == "Botanist"
+
+    # Query profile for Bob
+    prof_bob = client.get("/api/profile", headers={"X-User-Id": "user_bob"}).json()["profile"]
+    assert prof_bob["name"]["value"] == "Bob Builder"
+    assert prof_bob["occupation"]["value"] == "Architect"
+
+    # Add memory for Alice
+    client.post("/api/memories", json={"content": "Alice's secret garden", "category": "fact"}, headers={"X-User-Id": "user_alice"})
+    
+    # Query memories
+    mems_alice = client.get("/api/memories", headers={"X-User-Id": "user_alice"}).json()["memories"]
+    mems_bob = client.get("/api/memories", headers={"X-User-Id": "user_bob"}).json()["memories"]
+
+    assert any("Alice's secret garden" in m["content"] for m in mems_alice)
+    assert not any("Alice's secret garden" in m["content"] for m in mems_bob)
+
 

@@ -671,6 +671,30 @@
         </div>
     </div>
 
+    <!-- Modal: User Profile Switcher -->
+    <div class="modal-overlay hidden" id="user-switch-modal">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-users"></i> Switch User Profile</h3>
+                <button class="btn-close" id="btn-close-switch-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 12px;">
+                    Select an active profile or create a new one. Each user has their own private memory vault, conversation threads, and companion persona.
+                </p>
+                <div id="users-profile-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto;">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button class="btn btn-ghost" id="btn-cancel-switch-modal">Cancel</button>
+                <button class="btn btn-primary" id="btn-create-new-user-profile">
+                    <i class="fa-solid fa-user-plus"></i> + Create New Profile
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications Container -->
     <div class="toast-container" id="toast-container"></div>
 

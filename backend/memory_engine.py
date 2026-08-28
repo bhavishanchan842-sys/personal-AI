@@ -33,15 +33,15 @@ def calculate_keyword_overlap(query: str, text: str) -> float:
     intersection = q_words.intersection(t_words)
     return len(intersection) / len(q_words)
 
-def retrieve_relevant_memories(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+def retrieve_relevant_memories(query: str, top_k: int = 5, user_id: str = "default") -> List[Dict[str, Any]]:
     """
-    Retrieves the top-k most relevant memories for the given query using hybrid search:
+    Retrieves the top-k most relevant memories for the given query and isolated user:
     - Semantic embedding similarity
     - Keyword overlap
     - Importance rating
     - Recency decay
     """
-    all_memories = database.get_memories_with_embeddings()
+    all_memories = database.get_memories_with_embeddings(user_id=user_id)
     if not all_memories:
         return []
 
@@ -97,9 +97,9 @@ def retrieve_relevant_memories(query: str, top_k: int = 5) -> List[Dict[str, Any
     return top_results
 
 def add_or_update_memory(content: str, category: str = "fact", importance: float = 0.5, 
-                         source_session_id: Optional[str] = None) -> Tuple[int, str]:
+                         source_session_id: Optional[str] = None, user_id: str = "default") -> Tuple[int, str]:
     """
-    Adds a new memory or updates an existing one if a duplicate/near-identical memory exists.
+    Adds a new memory or updates an existing one for the isolated user.
     Returns (memory_id, action_taken: 'inserted' | 'updated').
     """
     content = content.strip()
@@ -107,7 +107,7 @@ def add_or_update_memory(content: str, category: str = "fact", importance: float
         return 0, "ignored"
 
     new_emb = generate_local_embedding(content)
-    existing_memories = database.get_memories_with_embeddings()
+    existing_memories = database.get_memories_with_embeddings(user_id=user_id)
 
     # Check for near duplicates or updates
     for existing in existing_memories:
@@ -116,7 +116,7 @@ def add_or_update_memory(content: str, category: str = "fact", importance: float
         
         # Exact match
         if ex_content.lower() == content.lower():
-            database.update_memory(existing["id"], content, category, max(importance, existing.get("importance", 0.5)), new_emb)
+            database.update_memory(existing["id"], content, category, max(importance, existing.get("importance", 0.5)), new_emb, user_id=user_id)
             return existing["id"], "updated"
 
         # High semantic similarity
@@ -124,7 +124,7 @@ def add_or_update_memory(content: str, category: str = "fact", importance: float
             sim = cosine_similarity(new_emb, ex_emb)
             if sim >= SIMILARITY_DUPLICATE_THRESHOLD:
                 # Update existing memory with fresher wording
-                database.update_memory(existing["id"], content, category, max(importance, existing.get("importance", 0.5)), new_emb)
+                database.update_memory(existing["id"], content, category, max(importance, existing.get("importance", 0.5)), new_emb, user_id=user_id)
                 return existing["id"], "updated"
 
     # Insert new memory
@@ -133,7 +133,8 @@ def add_or_update_memory(content: str, category: str = "fact", importance: float
         category=category,
         importance=importance,
         embedding=new_emb,
-        source_session_id=source_session_id
+        source_session_id=source_session_id,
+        user_id=user_id
     )
     return new_id, "inserted"
 

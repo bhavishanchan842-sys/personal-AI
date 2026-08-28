@@ -212,11 +212,12 @@ async def generate_text_completion(messages: List[Dict[str, str]], system_prompt
 async def extract_and_store_memories(
     user_message: str, 
     assistant_response: str, 
-    session_id: Optional[str] = None
+    session_id: Optional[str] = None,
+    user_id: str = "default"
 ):
     """
     Background worker that analyzes the user's latest interaction,
-    extracts new facts/preferences, and updates the database & user profile.
+    extracts new facts/preferences, and updates the database & user profile for the specific user.
     """
     try:
         dialogue = (
@@ -264,15 +265,15 @@ async def extract_and_store_memories(
                     "importance": 0.6
                 })
 
-        # Apply profile updates
+        # Apply profile updates for isolated user
         for prof in extraction.get("profile_updates", []):
             k = prof.get("key", "").strip()
             v = prof.get("value", "").strip()
             cat = prof.get("category", "general")
             if k and v:
-                database.set_profile_field(k, v, cat)
+                database.set_profile_field(k, v, cat, user_id=user_id)
 
-        # Store new memories
+        # Store new memories for isolated user
         for mem in extraction.get("new_memories", []):
             content = mem.get("content", "").strip()
             cat = mem.get("category", "fact")
@@ -282,7 +283,8 @@ async def extract_and_store_memories(
                     content=content,
                     category=cat,
                     importance=imp,
-                    source_session_id=session_id
+                    source_session_id=session_id,
+                    user_id=user_id
                 )
 
     except Exception as e:
