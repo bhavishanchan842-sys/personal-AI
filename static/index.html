@@ -31,8 +31,11 @@
     <div class="ambient-glow ambient-3"></div>
 
     <div class="app-layout">
+        <!-- Mobile Sidebar Backdrop Overlay -->
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
         <!-- Sidebar Navigation -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="app-sidebar">
             <div class="sidebar-header">
                 <div class="brand">
                     <div class="brand-avatar-box">
@@ -44,6 +47,7 @@
                         <span>Personal AI System</span>
                     </div>
                 </div>
+                <button class="icon-btn mobile-sidebar-close" id="btn-close-sidebar"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <nav class="nav-menu">
@@ -91,8 +95,21 @@
             </div>
         </aside>
 
-        <!-- Main Content Viewport -->
+        <!-- Main Content Area -->
         <main class="main-content">
+            <!-- Mobile Top Header Bar -->
+            <header class="mobile-topbar">
+                <div class="mobile-topbar-brand">
+                    <div class="mobile-avatar-box">
+                        <img src="/static/images/cartoon_avatar.jpg" alt="Aegis" class="mascot-img">
+                    </div>
+                    <span class="mobile-brand-title">AEGIS AI</span>
+                </div>
+                <div class="mobile-topbar-actions">
+                    <button class="icon-btn" id="btn-mobile-new-chat" title="New Chat"><i class="fa-solid fa-plus"></i></button>
+                    <button class="icon-btn mobile-menu-btn" id="btn-mobile-menu" aria-label="Open Menu"><i class="fa-solid fa-bars"></i></button>
+                </div>
+            </header>
 
             <!-- 1. CONVERSATIONS TAB -->
             <section id="chat-tab" class="tab-pane active">
@@ -702,6 +719,30 @@
             </div>
         </div>
     </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+        <button class="mobile-nav-btn active" data-tab="chat-tab">
+            <i class="fa-solid fa-message"></i>
+            <span>Chat</span>
+        </button>
+        <button class="mobile-nav-btn" data-tab="memory-tab">
+            <i class="fa-solid fa-brain-circuit"></i>
+            <span>Vault</span>
+        </button>
+        <button class="mobile-nav-btn" data-tab="persona-tab">
+            <i class="fa-solid fa-masks-theater"></i>
+            <span>Persona</span>
+        </button>
+        <button class="mobile-nav-btn" data-tab="profile-tab">
+            <i class="fa-solid fa-id-badge"></i>
+            <span>Identity</span>
+        </button>
+        <button class="mobile-nav-btn" data-tab="settings-tab">
+            <i class="fa-solid fa-sliders"></i>
+            <span>Settings</span>
+        </button>
+    </nav>
 
     <!-- Toast Notifications Container -->
     <div class="toast-container" id="toast-container"></div>

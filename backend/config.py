@@ -17,7 +17,7 @@ load_dotenv(dotenv_path=ENV_FILE)
 
 DATABASE_PATH = os.getenv("DATABASE_PATH", str(DATA_DIR / "personal_ai.db"))
 PORT = int(os.getenv("PORT", "8000"))
-HOST = os.getenv("HOST", "127.0.0.1")
+HOST = os.getenv("HOST", "0.0.0.0")
 
 class DefaultPersonaConfig(BaseModel):
     ai_name: str = "Aegis"

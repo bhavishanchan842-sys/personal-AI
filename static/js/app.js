@@ -137,6 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCancelSwitchModal = document.getElementById('btn-cancel-switch-modal');
     const btnCreateNewUserProfile = document.getElementById('btn-create-new-user-profile');
 
+    // Mobile Navigation Elements
+    const mobileNavBtns = document.querySelectorAll('.mobile-nav-btn');
+    const btnMobileMenu = document.getElementById('btn-mobile-menu');
+    const btnCloseSidebar = document.getElementById('btn-close-sidebar');
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    const appSidebar = document.getElementById('app-sidebar');
+    const btnMobileNewChat = document.getElementById('btn-mobile-new-chat');
+
     // --- Helper: Toast Notification ---
     function showToast(message, type = 'success') {
         const container = document.getElementById('toast-container');
@@ -150,11 +158,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Navigation Tabs ---
     function switchTab(targetTab) {
         state.activeTab = targetTab;
+        
+        // Desktop nav
         navItems.forEach(item => {
             if (item.getAttribute('data-tab') === targetTab) {
                 item.classList.add('active');
             } else {
                 item.classList.remove('active');
+            }
+        });
+
+        // Mobile bottom nav
+        mobileNavBtns.forEach(btn => {
+            if (btn.getAttribute('data-tab') === targetTab) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
             }
         });
 
@@ -165,6 +184,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 pane.classList.remove('active');
             }
         });
+
+        // Close mobile sidebar if open
+        if (appSidebar) appSidebar.classList.remove('open');
+        if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
 
         if (targetTab === 'memory-tab') loadMemories();
         if (targetTab === 'profile-tab') loadProfile();
@@ -178,6 +201,42 @@ document.addEventListener('DOMContentLoaded', () => {
             switchTab(target);
         });
     });
+
+    mobileNavBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-tab');
+            switchTab(target);
+        });
+    });
+
+    // Mobile Sidebar Drawer Toggle
+    if (btnMobileMenu && appSidebar) {
+        btnMobileMenu.addEventListener('click', () => {
+            appSidebar.classList.add('open');
+            if (sidebarBackdrop) sidebarBackdrop.classList.add('active');
+        });
+    }
+
+    if (btnCloseSidebar && appSidebar) {
+        btnCloseSidebar.addEventListener('click', () => {
+            appSidebar.classList.remove('open');
+            if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+        });
+    }
+
+    if (sidebarBackdrop && appSidebar) {
+        sidebarBackdrop.addEventListener('click', () => {
+            appSidebar.classList.remove('open');
+            sidebarBackdrop.classList.remove('active');
+        });
+    }
+
+    if (btnMobileNewChat) {
+        btnMobileNewChat.addEventListener('click', () => {
+            switchTab('chat-tab');
+            startNewChat();
+        });
+    }
 
     // --- Memory Vault Operations ---
 
