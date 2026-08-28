@@ -19,6 +19,9 @@ DATABASE_PATH = os.getenv("DATABASE_PATH", str(DATA_DIR / "personal_ai.db"))
 PORT = int(os.getenv("PORT", "8000"))
 HOST = os.getenv("HOST", "0.0.0.0")
 
+DEFAULT_PROVIDER = os.getenv("DEFAULT_PROVIDER", "groq")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "openai/gpt-oss-120b")
+
 class DefaultPersonaConfig(BaseModel):
     ai_name: str = "Aegis"
     user_name: str = "Friend"

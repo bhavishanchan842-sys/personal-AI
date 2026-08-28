@@ -489,16 +489,16 @@
                             <div class="form-group">
                                 <label>Provider</label>
                                 <select id="setting-provider" class="form-control">
-                                    <option value="gemini">Google Gemini (Recommended / Fast)</option>
-                                    <option value="groq">Groq (Ultra-Fast Llama 3.3 & Mixtral)</option>
+                                    <option value="groq" selected>Groq (Ultra-Fast Default)</option>
+                                    <option value="gemini">Google Gemini</option>
                                     <option value="openai">OpenAI</option>
                                     <option value="ollama">Ollama (Local / Offline)</option>
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label>Model Name</label>
-                                <input type="text" id="setting-model" class="form-control" value="gemini-3.6-flash">
-                                <small class="form-hint">Options: gemini-3.6-flash, llama-3.3-70b-versatile, llama-3.1-8b-instant, gpt-4o, mixtral-8x7b-32768</small>
+                                <input type="text" id="setting-model" class="form-control" value="openai/gpt-oss-120b">
+                                <small class="form-hint">Options: openai/gpt-oss-120b, llama-3.3-70b-versatile, llama-3.1-8b-instant, mixtral-8x7b-32768, gemini-3.6-flash, gpt-4o</small>
                             </div>
                         </div>
                     </div>

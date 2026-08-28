@@ -149,6 +149,15 @@ def init_db():
                     INSERT INTO user_personas (user_id, config, updated_at)
                     VALUES ('default', ?, CURRENT_TIMESTAMP)
                 """, (DEFAULT_PERSONA.model_dump_json(),))
+
+        # Initialize default provider & model settings if not set
+        cursor.execute("SELECT value FROM settings WHERE key = 'active_provider'")
+        if not cursor.fetchone():
+            cursor.execute("INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('active_provider', 'groq', CURRENT_TIMESTAMP)")
+
+        cursor.execute("SELECT value FROM settings WHERE key = 'active_model'")
+        if not cursor.fetchone():
+            cursor.execute("INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('active_model', 'openai/gpt-oss-120b', CURRENT_TIMESTAMP)")
             
         conn.commit()
 

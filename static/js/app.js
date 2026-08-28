@@ -721,8 +721,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             state.settings = data;
 
-            settingProvider.value = data.active_provider || 'gemini';
-            settingModel.value = data.active_model || 'gemini-3.6-flash';
+            settingProvider.value = data.active_provider || 'groq';
+            settingModel.value = data.active_model || 'openai/gpt-oss-120b';
 
             if (data.gemini_api_key_set) {
                 geminiKeyStatus.textContent = `Configured (${data.gemini_api_key_masked})`;
@@ -756,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
         settingProvider.addEventListener('change', () => {
             const p = settingProvider.value;
             if (p === 'groq') {
-                settingModel.value = 'llama-3.3-70b-versatile';
+                settingModel.value = 'openai/gpt-oss-120b';
             } else if (p === 'gemini') {
                 settingModel.value = 'gemini-3.6-flash';
             } else if (p === 'openai') {

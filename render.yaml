@@ -6,9 +6,11 @@ services:
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DEFAULT_PROVIDER
-        value: gemini
+        value: groq
       - key: DEFAULT_MODEL
-        value: gemini-3.6-flash
+        value: openai/gpt-oss-120b
+      - key: GROQ_API_KEY
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: OPENAI_API_KEY

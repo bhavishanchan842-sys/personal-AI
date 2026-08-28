@@ -47,8 +47,8 @@ def get_active_provider_and_model() -> tuple[str, str]:
         cursor.execute("SELECT value FROM settings WHERE key = 'active_model'")
         row_m = cursor.fetchone()
         
-    provider = row_p["value"] if row_p else os.getenv("DEFAULT_PROVIDER", "gemini")
-    model = row_m["value"] if row_m else os.getenv("DEFAULT_MODEL", "gemini-3.6-flash")
+    provider = row_p["value"] if row_p else os.getenv("DEFAULT_PROVIDER", "groq")
+    model = row_m["value"] if row_m else os.getenv("DEFAULT_MODEL", "openai/gpt-oss-120b")
     
     # Auto-migrate deprecated gemini-2.0-flash to gemini-3.6-flash
     if model in ["gemini-2.0-flash", "gemini-2.0-flash-exp"]:
