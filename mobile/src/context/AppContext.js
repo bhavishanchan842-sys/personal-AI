@@ -5,7 +5,7 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [userId, setUserIdState] = useState('default');
-  const [serverUrl, setServerUrlState] = useState('');
+  const [serverUrl, setServerUrlState] = useState('https://viberai.onrender.com');
   const [isConnected, setIsConnected] = useState(false);
   const [persona, setPersona] = useState({
     ai_name: 'Aegis',
@@ -32,7 +32,7 @@ export const AppProvider = ({ children }) => {
     init();
   }, []);
 
-  const loadAllData = async (uid = userId) => {
+  const loadAllData = async (uid = userId, retryCount = 0) => {
     try {
       const res = await apiFetch('/api/persona');
       if (res.ok) {
@@ -41,9 +41,15 @@ export const AppProvider = ({ children }) => {
         setIsConnected(true);
       } else {
         setIsConnected(false);
+        if (retryCount < 3) {
+          setTimeout(() => loadAllData(uid, retryCount + 1), 2500);
+        }
       }
     } catch {
       setIsConnected(false);
+      if (retryCount < 3) {
+        setTimeout(() => loadAllData(uid, retryCount + 1), 2500);
+      }
     }
 
     try {
