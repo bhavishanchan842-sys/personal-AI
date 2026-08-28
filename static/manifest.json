@@ -1,0 +1,24 @@
+{
+  "name": "Aegis — Personal AI Companion",
+  "short_name": "Aegis AI",
+  "description": "Your private personal AI companion with episodic memory and customizable demeanor.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080c14",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/images/cartoon_avatar.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/images/cartoon_avatar.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

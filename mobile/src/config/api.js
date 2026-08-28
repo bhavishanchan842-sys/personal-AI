@@ -1,0 +1,71 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+
+const STORAGE_KEY_SERVER_URL = '@aegis_server_url';
+const STORAGE_KEY_USER_ID = '@aegis_user_id';
+
+// Default development URLs based on platform
+const DEFAULT_URL = Platform.select({
+  android: 'http://10.0.2.2:8000',
+  ios: 'http://localhost:8000',
+  default: 'http://127.0.0.1:8000'
+});
+
+export const getServerUrl = async () => {
+  try {
+    const url = await AsyncStorage.getItem(STORAGE_KEY_SERVER_URL);
+    return url || DEFAULT_URL;
+  } catch {
+    return DEFAULT_URL;
+  }
+};
+
+export const setServerUrl = async (url) => {
+  try {
+    const cleanUrl = url.trim().replace(/\/+$/, '');
+    await AsyncStorage.setItem(STORAGE_KEY_SERVER_URL, cleanUrl);
+    return cleanUrl;
+  } catch (e) {
+    console.error('Error saving server URL:', e);
+  }
+};
+
+export const getUserId = async () => {
+  try {
+    let uid = await AsyncStorage.getItem(STORAGE_KEY_USER_ID);
+    if (!uid) {
+      uid = 'usr_' + Math.random().toString(36).substring(2, 10);
+      await AsyncStorage.setItem(STORAGE_KEY_USER_ID, uid);
+    }
+    return uid;
+  } catch {
+    return 'default';
+  }
+};
+
+export const setUserId = async (userId) => {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY_USER_ID, userId);
+  } catch (e) {
+    console.error('Error saving userId:', e);
+  }
+};
+
+export const apiFetch = async (path, options = {}) => {
+  const baseUrl = await getServerUrl();
+  const userId = await getUserId();
+  const url = `${baseUrl}${path.startsWith('/') ? path : '/' + path}`;
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'X-User-Id': userId,
+    ...(options.headers || {})
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    headers
+  });
+
+  return response;
+};

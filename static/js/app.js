@@ -1,4 +1,9 @@
-// Aegis Personal AI Frontend Application — 2026 Multi-User Tenant Edition
+// Register Service Worker for Mobile PWA Installation
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/sw.js').catch(err => console.log('SW registration note:', err));
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- State ---
