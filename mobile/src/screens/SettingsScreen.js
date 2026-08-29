@@ -209,6 +209,13 @@ export default function SettingsScreen() {
             <Text style={styles.btnPrimaryText}>{isSaving ? 'Saving...' : 'Save AI Settings'}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Creator Attribution */}
+        <View style={{ alignItems: 'center', paddingVertical: 14 }}>
+          <Text style={{ fontSize: 12, color: '#64748b' }}>
+            ViberAI v1.0.0 • Created with ❤️ by <Text style={{ color: '#06b6d4', fontWeight: '700' }}>Bhavish</Text>
+          </Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

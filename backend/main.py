@@ -103,14 +103,28 @@ class OnboardingRequest(BaseModel):
     communication_preference: Optional[str] = None
     tone_preset: Optional[str] = "Empathetic Companion"
 
-# --- UI Route ---
+# --- UI & SEO Routes ---
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
     index_file = STATIC_DIR / "index.html"
     if index_file.exists():
         return FileResponse(str(index_file))
-    return HTMLResponse("<h1>Personal AI System Backend is Running.</h1><p>Static UI loading...</p>")
+    return HTMLResponse("<h1>ViberAI — Personal AI Companion Created by Bhavish</h1><p>Static UI loading...</p>")
+
+@app.get("/robots.txt")
+async def serve_robots():
+    robots_file = STATIC_DIR / "robots.txt"
+    if robots_file.exists():
+        return FileResponse(str(robots_file), media_type="text/plain")
+    return HTMLResponse("User-agent: *\nAllow: /", media_type="text/plain")
+
+@app.get("/sitemap.xml")
+async def serve_sitemap():
+    sitemap_file = STATIC_DIR / "sitemap.xml"
+    if sitemap_file.exists():
+        return FileResponse(str(sitemap_file), media_type="application/xml")
+    return HTMLResponse("<urlset><url><loc>https://viberai.onrender.com/</loc></url></urlset>", media_type="application/xml")
 
 # --- User Management Endpoints ---
 
