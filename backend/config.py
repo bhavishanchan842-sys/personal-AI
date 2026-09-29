@@ -32,5 +32,9 @@ class DefaultPersonaConfig(BaseModel):
     formality: int = 30    # 0 to 100
     use_emojis: bool = True
     custom_instructions: str = ""
+    voice_enabled: bool = True
+    voice_name: str = "default"
+    voice_rate: float = 1.0
+    voice_pitch: float = 1.0
 
 DEFAULT_PERSONA = DefaultPersonaConfig()

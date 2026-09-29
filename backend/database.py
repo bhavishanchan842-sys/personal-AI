@@ -345,7 +345,10 @@ def get_persona_config(user_id: str = "default") -> Dict[str, Any]:
         row = cursor.fetchone()
         if row:
             try:
-                return json.loads(row["config"])
+                data = json.loads(row["config"])
+                merged = DEFAULT_PERSONA.model_dump()
+                merged.update(data)
+                return merged
             except Exception:
                 pass
         

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NestMate — 5 Slides Project Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: 16in 9in;
+            margin: 0;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        body {
+            background-color: #ffffff;
+            color: #1e293b;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .slide {
+            width: 16in;
+            height: 9in;
+            page-break-after: always;
+            padding: 0.8in 1.0in;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: #ffffff;
+            overflow: hidden;
+        }
+        .slide:last-child {
+            page-break-after: avoid;
+        }
+        .tag-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.1in;
+        }
+        .tag {
+            font-size: 14pt;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #0d9488;
+        }
+        .badge {
+            background: #1e293b;
+            color: #10b981;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 13pt;
+            font-weight: 700;
+        }
+        .slide-title {
+            font-size: 30pt;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.3in;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4in;
+            flex: 1;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 0.3in;
+            flex: 1;
+        }
+        .card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 0.35in;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-dark {
+            background: #1e293b;
+            border: 2px solid #334155;
+            color: #f1f5f9;
+        }
+        .card h3 {
+            font-size: 19pt;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.18in;
+        }
+        .card-dark h3 {
+            color: #38bdf8;
+        }
+        .card ul {
+            list-style: none;
+        }
+        .card li {
+            font-size: 15pt;
+            line-height: 1.6;
+            color: #334155;
+            margin-bottom: 0.14in;
+            display: flex;
+            gap: 12px;
+        }
+        .card-dark li {
+            color: #cbd5e1;
+        }
+        .card li span.bullet {
+            color: #10b981;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14pt;
+            margin-top: 0.1in;
+        }
+        th, td {
+            padding: 18px 22px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        th {
+            background: #1e293b;
+            color: #f8fafc;
+            font-weight: 700;
+            font-size: 15pt;
+        }
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SLIDE 1: INTRODUCTION -->
+    <div class="slide">
+        <div class="tag-row">
+            <div class="tag">PROJECT INTRODUCTION & CONTEXT</div>
+            <div class="badge">SLIDE 1/5</div>
+        </div>
+        <h1 class="slide-title">1. Introduction & Background</h1>
+        
+        <div class="card card-dark" style="margin-bottom: 0.3in; padding: 0.25in 0.35in;">
+            <p style="font-size: 18pt; font-weight: 800; color: #10b981; margin-bottom: 6px;">
+                Project Title: NestMate — Intelligent Room & PG Finder with Roommate Compatibility
+            </p>
+            <p style="font-size: 14pt; color: #cbd5e1;">
+                Candidate Name: <b>[Your Name]</b> &nbsp;|&nbsp; Reg No: <b>[Your Roll No]</b> &nbsp;|&nbsp; Project Guide: <b>[Guide / Mam's Name]</b>
+            </p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h3>Background & The Core Problem</h3>
+                <ul>
+                    <li><span class="bullet">•</span> <b>Rapid Urban Migration:</b> Millions of students and entry-level IT professionals relocate to tech hubs (Bengaluru, Gurgaon, Pune, Hyderabad, Mumbai).</li>
+                    <li><span class="bullet">•</span> <b>Financial Reality:</b> High rental costs make PGs and shared flats the only viable housing choice.</li>
+                    <li><span class="bullet">•</span> <b>The Roommate Problem:</b> Living with mismatched habits causes sleep deprivation, academic stress, lease breakages, and financial penalties.</li>
+                    <li><span class="bullet">•</span> <b>The Missing Link:</b> Traditional portals treat shared living as pure real estate, completely ignoring human roommate compatibility.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="color:#0d9488;">The NestMate Solution</h3>
+                <ul>
+                    <li><span class="bullet">✓</span> <b>Dual-Integrated Platform:</b> Seamlessly combines specialized room/PG search with an algorithmic lifestyle matchmaking engine.</li>
+                    <li><span class="bullet">✓</span> <b>Pre-Booking Transparency:</b> Seekers view real-time compatibility match scores with <i>current occupants</i> already living in that room before visiting.</li>
+                    <li><span class="bullet">✓</span> <b>6-Axis Lifestyle Profiling:</b> Evaluates sleep cycles, cleanliness, social battery, noise tolerance, work routines, and food habits.</li>
+                    <li><span class="bullet">✓</span> <b>Co-Living Utilities:</b> Provides Fair Rent Splitter and Digital 11-Month Roommate Agreement tools.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 2: LITERATURE SURVEY -->
+    <div class="slide">
+        <div class="tag-row">
+            <div class="tag">RELATED WORK & COMPARATIVE STUDY</div>
+            <div class="badge">SLIDE 2/5</div>
+        </div>
+        <h1 class="slide-title">2. Literature Survey & Related Work</h1>
+        
+        <div style="border: 2px solid #cbd5e1; border-radius: 12px; overflow: hidden;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Category / System</th>
+                        <th style="width: 25%;">Primary Focus</th>
+                        <th style="width: 25%;">Key Strengths</th>
+                        <th style="width: 30%;">Identified Limitations & Gaps</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>Commercial Portals</b><br>(99acres, MagicBricks)</td>
+                        <td>Real Estate Sales & Whole Flat Rentals</td>
+                        <td>Massive property database, map search, broker directory.</td>
+                        <td><b>Zero roommate matching.</b> Treats shared housing strictly as real estate; no lifestyle assessment.</td>
+                    </tr>
+                    <tr>
+                        <td><b>Managed Co-Living</b><br>(Zolo, Stanza Living)</td>
+                        <td>Managed Hostels & Student Accommodations</td>
+                        <td>Furnished rooms, housekeeping, meal mess, mobile rent app.</td>
+                        <td><b>No compatibility screening.</b> Arbitrary bed assignments; rigid contracts and high lock-in deposits.</td>
+                    </tr>
+                    <tr>
+                        <td><b>Western Apps</b><br>(Roomi, SpareRoom)</td>
+                        <td>Roommate Pairing in US/UK</td>
+                        <td>Personal profiles, budget filter, in-app messaging.</td>
+                        <td><b>Lacks Indian Context:</b> No single/double/triple PG sharing, no meal plan filters, no strict veg dealbreakers.</td>
+                    </tr>
+                    <tr>
+                        <td><b>Academic Research</b><br>(Multi-Attribute Matching)</td>
+                        <td>Theoretical Matchmaking Algorithms</td>
+                        <td>Mathematical proof of stable pairing, vector distance models.</td>
+                        <td><b>Purely theoretical:</b> Algorithms exist in papers but are never integrated into an active booking portal.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SLIDE 3: GAPS IN EXISTING SYSTEMS -->
+    <div class="slide">
+        <div class="tag-row">
+            <div class="tag">RESEARCH & MARKET OPPORTUNITIES</div>
+            <div class="badge">SLIDE 3/5</div>
+        </div>
+        <h1 class="slide-title">3. Gaps in Existing Systems</h1>
+        
+        <div class="grid-4">
+            <div class="card">
+                <h3>1. Property-Centric vs Human-Centric</h3>
+                <p style="font-size: 15pt; line-height: 1.6; color: #475569;">
+                    Existing portals treat room hunting strictly as real estate. In shared living, tenant satisfaction is <b>80% determined by roommate interpersonal harmony</b> rather than wall paint or floor tiles.
+                </p>
+            </div>
+            <div class="card">
+                <h3 style="color:#0d9488;">2. The 'Blind Booking' Risk</h3>
+                <p style="font-size: 15pt; line-height: 1.6; color: #475569;">
+                    Tenants sign leases without knowing if current occupants are night owls, non-vegetarians, smokers, or have incompatible hygiene habits, causing immediate conflict and lease breaks.
+                </p>
+            </div>
+            <div class="card">
+                <h3>3. Missing Indian PG Context</h3>
+                <p style="font-size: 15pt; line-height: 1.6; color: #475569;">
+                    Global platforms fail to support Indian realities: <b>Boys/Girls/Co-Ed PGs</b>, <b>Food/Mess inclusions (3 meals/day vs self-cooking)</b>, <b>Curfew rules</b>, and <b>Zero Brokerage</b> verification.
+                </p>
+            </div>
+            <div class="card">
+                <h3 style="color:#0d9488;">4. Absence of Dispute Prevention Tools</h3>
+                <p style="font-size: 15pt; line-height: 1.6; color: #475569;">
+                    No existing platforms provide objective tools like <b>Fair Rent Splitters</b> (adjusting rent for attached bathrooms/balconies) or structured digital co-living agreements.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 4: PROBLEM STATEMENT -->
+    <div class="slide">
+        <div class="tag-row">
+            <div class="tag">FORMAL RESEARCH DEFINITION</div>
+            <div class="badge">SLIDE 4/5</div>
+        </div>
+        <h1 class="slide-title">4. Problem Statement</h1>
+        
+        <div class="card card-dark" style="margin-bottom: 0.35in; padding: 0.35in; border-left: 6px solid #10b981;">
+            <p style="font-size: 13pt; font-weight: 800; color: #10b981; letter-spacing: 0.08em; margin-bottom: 10px;">FORMAL PROBLEM STATEMENT</p>
+            <p style="font-size: 18pt; font-weight: 500; line-height: 1.6; color: #f8fafc;">
+                "To design and develop an intelligent web platform that bridges the gap between student/PG accommodation discovery and algorithmic roommate lifestyle compatibility, enabling prospective tenants to evaluate physical property attributes and occupant compatibility simultaneously before committing to financial deposits or residential agreements."
+            </p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h3>Target Demographics & Stakeholders</h3>
+                <ul>
+                    <li><span class="bullet">•</span> Undergraduate and postgraduate university students.</li>
+                    <li><span class="bullet">•</span> Entry-level IT and corporate professionals moving to tech clusters.</li>
+                    <li><span class="bullet">•</span> Independent PG owners seeking long-term, harmonious tenants.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="color:#0d9488;">Key Pain Points Addressed</h3>
+                <ul>
+                    <li><span class="bullet">✓</span> Eliminates the financial and mental risk of living with incompatible roommates.</li>
+                    <li><span class="bullet">✓</span> Provides complete transparency into existing flatmates' daily habits.</li>
+                    <li><span class="bullet">✓</span> Removes broker exploitation with direct, zero-brokerage room search.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: OBJECTIVES -->
+    <div class="slide">
+        <div class="tag-row">
+            <div class="tag">PROJECT GOALS & SCOPE</div>
+            <div class="badge">SLIDE 5/5</div>
+        </div>
+        <h1 class="slide-title">5. Project Objectives</h1>
+        
+        <div class="grid-2">
+            <div class="card">
+                <h3>Primary Objectives</h3>
+                <ul>
+                    <li><span class="bullet">🎯</span> <b>Interactive PG & Room Discovery Engine:</b> Develop filters for Boys/Girls/Co-Ed PGs, single/sharing occupancy, 3 meals included, and budget in ₹ INR.</li>
+                    <li><span class="bullet">🎯</span> <b>Algorithmic Compatibility Engine:</b> Implement weighted Euclidean vector distance math across 6 lifestyle dimensions (Sleep, Cleanliness, Social, Work, Noise, Cooking).</li>
+                    <li><span class="bullet">🎯</span> <b>Dual-Integration Architecture:</b> Embed real-time occupant compatibility match % directly into property listing cards.</li>
+                    <li><span class="bullet">🎯</span> <b>Visual Radar Comparison:</b> Generate 6-axis Radar charts with automatic Green Flags (strengths) and Yellow Flags (habits to discuss).</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h3 style="color:#0d9488;">Secondary / Utility Objectives</h3>
+                <ul>
+                    <li><span class="bullet">⚡</span> <b>Dealbreaker Enforcement:</b> Enforce strict rules for smoking, alcohol, pets, and dietary preferences (Pure Veg vs Non-Veg).</li>
+                    <li><span class="bullet">⚡</span> <b>Mathematical Fair Rent Splitter:</b> Build an objective calculator dividing rent based on room size, attached washroom, and balcony.</li>
+                    <li><span class="bullet">⚡</span> <b>Digital Roommate Agreement:</b> Standardize house rules, quiet hours, and chore rotation contracts with print/export options.</li>
+                    <li><span class="bullet">⚡</span> <b>High-Performance Architecture:</b> Provide a fast, responsive Single Page Application (SPA) using React 18, Vite, and Python FastAPI.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

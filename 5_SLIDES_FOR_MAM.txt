@@ -1,0 +1,110 @@
+================================================================================
+    SMART RENTAL AND ROOMMATE COMPATIBILITY — 5 SLIDES PRESENTATION
+================================================================================
+
+PROJECT NAME: Smart Rental and Roommate Compatibility
+DOMAIN: Web Application Development
+
+--------------------------------------------------------------------------------
+SLIDE 1: INTRODUCTION & BACKGROUND
+--------------------------------------------------------------------------------
+1. The Real Problem Today:
+   - Thousands of students and job seekers move to tech cities (Bangalore, Pune, 
+     Gurgaon, etc.) for college and IT jobs.
+   - Renting a full flat alone is too expensive, so everyone stays in PGs or 
+     shared rooms.
+   - Finding an empty room is easy, but finding good roommates is very hard.
+   - Differences in sleep time (night owl vs early bird), cleaning, or food habits 
+     cause daily stress and fights.
+
+2. Our Smart Rental Solution:
+   - A two-in-one website: search for rooms/PGs, and also check roommate compatibility.
+   - Check compatibility before booking: see a 0% to 100% match score with roommates 
+     already living there before you pay.
+   - Simple 6-habit quiz: matches users on sleep timing, cleanliness, noise level, 
+     work routine, and food preferences.
+   - Helpful living tools: a fair rent splitter (for bigger rooms) and a simple 
+     1-click roommate agreement for house rules.
+
+--------------------------------------------------------------------------------
+SLIDE 2: LITERATURE SURVEY & RELATED WORK
+--------------------------------------------------------------------------------
+1. MagicBricks & 99acres:
+   - What they do: Large list of property photos and owner phone numbers.
+   - Limitation: Zero roommate matching. They only care about rent money, not who 
+     lives with you.
+
+2. Zolo Stays & Stanza Living:
+   - What they do: Furnished hostels and PGs with food mess and housekeeping.
+   - Limitation: They put random roommates together without asking you. High deposit 
+     and rigid contracts.
+
+3. Foreign Apps (Roomi, SpareRoom):
+   - What they do: Flatmate matching in US & UK.
+   - Limitation: Not made for India. Does not have Boys/Girls PG filters, meal options, 
+     or veg food rules.
+
+4. College Research Papers:
+   - What they do: Mathematical formulas for matching people.
+   - Limitation: Only research papers and theories. Nobody built a simple, working 
+     website for students.
+
+--------------------------------------------------------------------------------
+SLIDE 3: GAPS IN EXISTING SYSTEMS (WHAT IS MISSING)
+--------------------------------------------------------------------------------
+1. Gap 1: Apps Only Show Rooms, Not People:
+   - Existing websites show photos of empty rooms and walls. But your peaceful 
+     living depends on who you live with, not just how the room looks.
+
+2. Gap 2: The Problem of "Blind Booking":
+   - Students pay money and book a bed without knowing if their roommate stays awake 
+     all night, leaves dirty dishes, or smokes inside.
+
+3. Gap 3: Missing Indian PG Needs:
+   - Most apps don't easily filter for Indian needs: Boys PG, Girls PG, 3 meals 
+     included daily, gate curfew timings, and zero brokerage.
+
+4. Gap 4: No Help to Avoid Daily Fights:
+   - Existing apps have no tools to divide rent fairly if one person has a bigger 
+     room or attached bathroom, and no simple house rules agreement.
+
+--------------------------------------------------------------------------------
+SLIDE 4: PROBLEM STATEMENT
+--------------------------------------------------------------------------------
+"To build an easy-to-use Smart Rental website where students and job seekers can 
+search for PGs and rooms, and check if their lifestyle habits match with current 
+roommates before paying any deposit money."
+
+Who Will Use This Website?
+- College students moving to university cities.
+- Young IT and office workers looking for shared flats.
+- PG owners who want peaceful, long-term tenants.
+
+Main Benefits for Students:
+- No more roommate fights or stress after moving in.
+- Full transparency of daily habits before booking.
+- Direct contact without paying broker fees.
+
+--------------------------------------------------------------------------------
+SLIDE 5: PROJECT OBJECTIVES (WHAT THE WEBSITE DOES)
+--------------------------------------------------------------------------------
+Main Objectives (Core Features):
+1. Smart PG & Room Search: Search by Boys PG, Girls PG, Single/2/3 sharing, 3 meals 
+   included, and budget in Rupees.
+2. Roommate Compatibility Score: Calculates a 0% to 100% match score using 6 daily 
+   habits (Sleep, Cleanliness, Work, Noise, Food, Guests).
+3. Match Score on Room Cards: Shows "92% Match with Flatmate" directly on room 
+   listings so you know before visiting.
+4. Comparison Charts: Simple charts showing what habits you match on and what you 
+   should discuss.
+
+Helpful Tools (Extra Features):
+1. Strict Dealbreakers: Strict filters for Pure Veg food, non-smoking, and pets 
+   (if dealbreaker fails, match is 0%).
+2. Fair Rent Splitter: Tool that calculates fair rent if someone has an attached 
+   bathroom or balcony.
+3. Roommate Agreement: 1-click simple agreement for cleaning turns, quiet hours, 
+   and visitors.
+4. Fast & Clean Website: Modern, clean website that works smoothly on mobile and 
+   laptops.
+================================================================================

@@ -85,6 +85,10 @@ class PersonaUpdateRequest(BaseModel):
     formality: int
     use_emojis: bool
     custom_instructions: Optional[str] = ""
+    voice_enabled: Optional[bool] = True
+    voice_name: Optional[str] = "default"
+    voice_rate: Optional[float] = 1.0
+    voice_pitch: Optional[float] = 1.0
 
 class SettingsUpdateRequest(BaseModel):
     active_provider: str

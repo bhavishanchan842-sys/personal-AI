@@ -2236,3 +2236,172 @@ input:checked + .toggle-slider:before {
     }
 }
 
+/* --- Voice Input & Speech Synthesis UI --- */
+
+/* Glowing active recording state for mic button */
+#btn-voice-input.recording {
+    background: rgba(244, 63, 94, 0.3) !important;
+    border-color: #f43f5e !important;
+    color: #f43f5e !important;
+    animation: pulseRecording 1.4s infinite ease-in-out;
+    box-shadow: 0 0 16px rgba(244, 63, 94, 0.6);
+}
+
+@keyframes pulseRecording {
+    0% { transform: scale(1); box-shadow: 0 0 6px rgba(244, 63, 94, 0.4); }
+    50% { transform: scale(1.12); box-shadow: 0 0 18px rgba(244, 63, 94, 0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 6px rgba(244, 63, 94, 0.4); }
+}
+
+/* Floating Voice Recording Banner */
+.voice-recording-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 10px 18px;
+    background: rgba(15, 23, 42, 0.92);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(244, 63, 94, 0.45);
+    margin-bottom: 10px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    animation: slideDownFade 0.25s ease;
+}
+
+.voice-recording-banner.hidden {
+    display: none !important;
+}
+
+@keyframes slideDownFade {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.voice-wave-animation {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 18px;
+}
+
+.vwave {
+    width: 3px;
+    height: 6px;
+    background: #f43f5e;
+    border-radius: 2px;
+    animation: waveBounce 1.2s infinite ease-in-out;
+}
+
+.vwave.w1 { animation-delay: 0.0s; }
+.vwave.w2 { animation-delay: 0.2s; }
+.vwave.w3 { animation-delay: 0.4s; }
+.vwave.w4 { animation-delay: 0.6s; }
+.vwave.w5 { animation-delay: 0.8s; }
+
+@keyframes waveBounce {
+    0%, 100% { height: 6px; opacity: 0.5; }
+    50% { height: 18px; opacity: 1; }
+}
+
+.voice-status-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f43f5e;
+    flex: 1;
+}
+
+.voice-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-voice-action {
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.btn-voice-action.send {
+    background: #10b981;
+    color: #fff;
+}
+.btn-voice-action.send:hover {
+    background: #059669;
+    transform: scale(1.05);
+}
+
+.btn-voice-action.cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+}
+.btn-voice-action.cancel:hover {
+    background: rgba(244, 63, 94, 0.2);
+    color: #f43f5e;
+}
+
+/* Audio Playback Button on Assistant Chat Bubble */
+.msg-audio-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-msg-audio {
+    background: rgba(6, 182, 212, 0.12);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    color: var(--cyan);
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-msg-audio:hover {
+    background: rgba(6, 182, 212, 0.25);
+    transform: scale(1.04);
+}
+
+.btn-msg-audio.playing {
+    background: rgba(168, 85, 247, 0.2);
+    border-color: #a855f7;
+    color: #c084fc;
+}
+
+.audio-soundwave {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 12px;
+}
+
+.audio-soundwave span {
+    width: 2px;
+    height: 4px;
+    background: currentColor;
+    border-radius: 1px;
+}
+
+.btn-msg-audio.playing .audio-soundwave span {
+    animation: waveBounce 0.9s infinite ease-in-out;
+}
+.btn-msg-audio.playing .audio-soundwave span:nth-child(2) { animation-delay: 0.15s; }
+.btn-msg-audio.playing .audio-soundwave span:nth-child(3) { animation-delay: 0.3s; }
+.btn-msg-audio.playing .audio-soundwave span:nth-child(4) { animation-delay: 0.45s; }
+

@@ -49,6 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentChatTitle = document.getElementById('current-chat-title');
     const memoryCountBadge = document.getElementById('memory-count-badge');
     const btnQuickMemory = document.getElementById('btn-quick-memory');
+    const btnVoiceInput = document.getElementById('btn-voice-input');
+    const voiceRecordingBanner = document.getElementById('voice-recording-banner');
+    const voiceStatusText = document.getElementById('voice-status-text');
+    const btnStopVoice = document.getElementById('btn-stop-voice');
+    const btnCancelVoice = document.getElementById('btn-cancel-voice');
+    const btnToggleVoice = document.getElementById('btn-toggle-voice');
+    const voiceToggleLabel = document.getElementById('voice-toggle-label');
+    const btnMobileToggleVoice = document.getElementById('btn-mobile-toggle-voice');
 
     // Sidebar & Persona elements
     const sidebarAiName = document.getElementById('sidebar-ai-name');
@@ -91,6 +99,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const personaCustomInstructions = document.getElementById('persona-custom-instructions');
     const btnSavePersona = document.getElementById('btn-save-persona');
     const voicePreviewText = document.getElementById('voice-preview-text');
+    const personaVoiceName = document.getElementById('persona-voice-name');
+    const sliderVoiceRate = document.getElementById('slider-voice-rate');
+    const valVoiceRate = document.getElementById('val-voice-rate');
+    const sliderVoicePitch = document.getElementById('slider-voice-pitch');
+    const valVoicePitch = document.getElementById('val-voice-pitch');
+    const personaVoiceEnabled = document.getElementById('persona-voice-enabled');
+    const btnTestVoice = document.getElementById('btn-test-voice');
 
     // Profile Elements
     const profileGrid = document.getElementById('profile-grid');

@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NestMate — 5-Slide Project Presentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        body {
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .presentation-container {
+            width: 90vw;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9;
+            background: #ffffff;
+            color: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .slide {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 42px 52px;
+            flex-direction: column;
+            position: relative;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .slide.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-dark {
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .tag {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #0d9488;
+            margin-bottom: 4px;
+        }
+        .slide-title {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 20px;
+        }
+        .slide-dark .slide-title {
+            color: #ffffff;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+            flex: 1;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 16px;
+            flex: 1;
+        }
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+        }
+        .card-dark {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #f1f5f9;
+        }
+        .card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 12px;
+        }
+        .card-dark h3 {
+            color: #38bdf8;
+        }
+        .card ul {
+            list-style: none;
+        }
+        .card li {
+            font-size: 0.92rem;
+            line-height: 1.55;
+            color: #475569;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 8px;
+        }
+        .card-dark li {
+            color: #cbd5e1;
+        }
+        .card li span.bullet {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #1e293b;
+            color: #f8fafc;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        /* Navigation Controls */
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .btn {
+            background: #1e293b;
+            color: #ffffff;
+            border: 1px solid #334155;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .btn:hover {
+            background: #10b981;
+            color: #0f172a;
+            border-color: #10b981;
+        }
+        .slide-counter {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-container">
+
+        <!-- SLIDE 1: INTRODUCTION -->
+        <div class="slide active" id="slide-1">
+            <div class="tag">SLIDE 1 OF 5  |  NESTMATE PROJECT REVIEW</div>
+            <h2 class="slide-title">1. Introduction & Background</h2>
+            <div class="card card-dark" style="padding: 14px 20px; margin-bottom: 18px; border-left: 4px solid #10b981;">
+                <p style="font-size: 1.05rem; font-weight: 700; color: #10b981;">Project Title: NestMate — Intelligent Room & PG Finder with Roommate Compatibility</p>
+                <p style="font-size: 0.88rem; color: #cbd5e1; margin-top: 3px;">Student Name: [Your Name] &nbsp;|&nbsp; Roll No: [Your Roll No] &nbsp;|&nbsp; Guide: [Guide / Mam's Name]</p>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Background & Motivation</h3>
+                    <ul>
+                        <li><span class="bullet">•</span> <b>Student & Urban Influx:</b> Heavy student and young IT professional migration to major educational & tech hubs.</li>
+                        <li><span class="bullet">•</span> <b>Economic Reality:</b> High rental costs make PGs (Paying Guest) and shared flats the primary housing choice.</li>
+                        <li><span class="bullet">•</span> <b>The Unspoken Reality:</b> Finding a room is easy; finding compatible roommates determines peaceful daily living and mental health.</li>
+                        <li><span class="bullet">•</span> <b>The Roommate Problem:</b> Clashing sleep cycles, hygiene, and diets cause stress, lease breaks, and financial loss.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 style="color:#0d9488;">The NestMate Solution</h3>
+                    <ul>
+                        <li><span class="bullet">✓</span> <b>Dual-Integrated Platform:</b> Unifies specialized room & PG search with an algorithmic compatibility engine.</li>
+                        <li><span class="bullet">✓</span> <b>Pre-Booking Visibility:</b> Seekers view real-time compatibility scores with <i>current occupants</i> already living in a room before visiting.</li>
+                        <li><span class="bullet">✓</span> <b>6-Axis Lifestyle Profiling:</b> Evaluates sleep rhythm, cleanliness, noise tolerance, work routine, social battery, and food habits.</li>
+                        <li><span class="bullet">✓</span> <b>Co-Living Utilities:</b> Includes Fair Rent Splitter and Digital 11-Month Roommate Agreement tools.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: LITERATURE SURVEY -->
+        <div class="slide" id="slide-2">
+            <div class="tag">SLIDE 2 OF 5  |  NESTMATE PROJECT REVIEW</div>
+            <h2 class="slide-title">2. Literature Survey & Related Work</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category / System</th>
+                            <th>Primary Focus</th>
+                            <th>Key Strengths</th>
+                            <th>Identified Limitations & Gaps</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><b>Commercial Portals</b><br>(99acres, MagicBricks, Housing)</td>
+                            <td>Real Estate Sales & Whole Flat Rentals</td>
+                            <td>Massive property database, map search, broker directory.</td>
+                            <td><b>Zero roommate matching.</b> Treats shared housing strictly as real estate; no lifestyle assessment.</td>
+                        </tr>
+                        <tr>
+                            <td><b>Managed Co-Living</b><br>(Zolo Stays, Stanza Living)</td>
+                            <td>Managed Hostels & Student PGs</td>
+                            <td>Furnished rooms, meal mess, mobile rent payment app.</td>
+                            <td><b>No compatibility screening.</b> Arbitrary bed assignments; rigid contracts and high lock-in costs.</td>
+                        </tr>
+                        <tr>
+                            <td><b>International Apps</b><br>(Roomi, SpareRoom)</td>
+                            <td>Roommate Pairing in US/UK</td>
+                            <td>Personal profiles, budget filter, in-app messaging.</td>
+                            <td><b>Lacks Indian Context:</b> No single/double/triple PG sharing, no meal plan filters, no strict veg dealbreakers.</td>
+                        </tr>
+                        <tr>
+                            <td><b>Academic Research</b><br>(Multi-Attribute Matching)</td>
+                            <td>Stable Matching Algorithms</td>
+                            <td>Gale-Shapley variants, Euclidean distance profiling.</td>
+                            <td><b>Purely theoretical:</b> Algorithms exist in papers but are never integrated into an active booking portal.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: GAPS IN EXISTING SYSTEMS -->
+        <div class="slide" id="slide-3">
+            <div class="tag">SLIDE 3 OF 5  |  NESTMATE PROJECT REVIEW</div>
+            <h2 class="slide-title">3. Gaps in Existing Systems</h2>
+            <div class="grid-4">
+                <div class="card">
+                    <h3 style="color:#0f172a;">1. Property-Centric vs Human-Centric</h3>
+                    <p style="font-size:0.9rem; color:#475569;">Existing portals treat room hunting strictly as real estate. In shared living, tenant satisfaction is 80% determined by roommate interpersonal harmony.</p>
+                </div>
+                <div class="card">
+                    <h3 style="color:#0d9488;">2. The 'Blind Booking' Risk</h3>
+                    <p style="font-size:0.9rem; color:#475569;">Students sign leases without knowing if current roommates are night owls, strict non-veg, or have incompatible hygiene standards, causing rapid disputes.</p>
+                </div>
+                <div class="card">
+                    <h3 style="color:#0f172a;">3. Missing Indian PG Context</h3>
+                    <p style="font-size:0.9rem; color:#475569;">Global platforms fail to support Boys/Girls/Co-Ed PGs, Food/Mess inclusions (3 meals/day), Curfew rules, and Zero Brokerage verification.</p>
+                </div>
+                <div class="card">
+                    <h3 style="color:#0d9488;">4. Absence of Dispute Prevention Tools</h3>
+                    <p style="font-size:0.9rem; color:#475569;">No platforms provide objective tools like Fair Rent Splitters (adjusting rent for attached bathrooms/balconies) or digital co-living agreements.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: PROBLEM STATEMENT -->
+        <div class="slide" id="slide-4">
+            <div class="tag">SLIDE 4 OF 5  |  NESTMATE PROJECT REVIEW</div>
+            <h2 class="slide-title">4. Problem Statement</h2>
+            <div class="card card-dark" style="padding: 24px; margin-bottom: 20px; border-left: 5px solid #10b981;">
+                <p style="font-size: 0.82rem; font-weight: 700; color: #10b981; letter-spacing: 0.05em; margin-bottom: 8px;">FORMAL PROBLEM STATEMENT</p>
+                <p style="font-size: 1.25rem; font-weight: 500; line-height: 1.6; color: #f8fafc;">
+                    "To design and develop an intelligent web platform that bridges the gap between student/PG accommodation discovery and algorithmic roommate lifestyle compatibility, enabling seekers to evaluate physical property attributes and occupant compatibility simultaneously before committing to financial deposits or residential agreements."
+                </p>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Target Demographics</h3>
+                    <ul>
+                        <li><span class="bullet">•</span> Undergraduate and postgraduate university students.</li>
+                        <li><span class="bullet">•</span> Entry-level IT and corporate professionals moving to tech clusters.</li>
+                        <li><span class="bullet">•</span> Independent PG owners seeking long-term, harmonious tenants.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Key Pain Points Addressed</h3>
+                    <ul>
+                        <li><span class="bullet">✓</span> Eliminates the financial risk of incompatible co-living.</li>
+                        <li><span class="bullet">✓</span> Real-time visibility into existing flatmates' daily habits.</li>
+                        <li><span class="bullet">✓</span> Transparent, zero-brokerage room search.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: OBJECTIVES -->
+        <div class="slide" id="slide-5">
+            <div class="tag">SLIDE 5 OF 5  |  NESTMATE PROJECT REVIEW</div>
+            <h2 class="slide-title">5. Project Objectives</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Primary Objectives</h3>
+                    <ul>
+                        <li><span class="bullet">🎯</span> <b>PG Discovery Hub:</b> Build multi-attribute filters (Boys/Girls/Co-Ed PGs, single/sharing rooms, 3 meals included, zero brokerage).</li>
+                        <li><span class="bullet">🎯</span> <b>Algorithmic Compatibility Engine:</b> Calculate match scores (0–100%) using weighted Euclidean vector distance across 6 lifestyle dimensions.</li>
+                        <li><span class="bullet">🎯</span> <b>Dual-Integration Architecture:</b> Display live roommate compatibility scores directly on room listings cards.</li>
+                        <li><span class="bullet">🎯</span> <b>Visual Radar Comparison:</b> Render 6-axis Radar charts with Green Flags (strengths) and Yellow Flags (habits to discuss).</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 style="color:#0d9488;">Secondary / Utility Objectives</h3>
+                    <ul>
+                        <li><span class="bullet">⚡</span> <b>Dealbreaker Filtering:</b> Enforce hard constraints for smoking, alcohol, pets, and dietary conflicts (Pure Veg vs Non-Veg).</li>
+                        <li><span class="bullet">⚡</span> <b>Fair Rent Splitter:</b> Algorithmic tool dividing rent fairly based on room size, attached washroom, and balcony.</li>
+                        <li><span class="bullet">⚡</span> <b>Digital Roommate Agreement:</b> 11-Month standardized house rule and chore contract generator.</li>
+                        <li><span class="bullet">⚡</span> <b>Modern SPA Performance:</b> Responsive, high-speed user experience with React 18, Vite, and Python FastAPI.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+        <button class="btn" id="prev-btn" onclick="prevSlide()">&#8592; Previous</button>
+        <span class="slide-counter" id="counter">Slide 1 of 5</span>
+        <button class="btn" id="next-btn" onclick="nextSlide()">Next &#8594;</button>
+        <button class="btn" style="background: #0d9488;" onclick="toggleFullScreen()">⛶ Fullscreen</button>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 5;
+
+        function updateSlide() {
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.getElementById(`slide-${currentSlide}`).classList.add('active');
+            document.getElementById('counter').innerText = `Slide ${currentSlide} of ${totalSlides}`;
+            document.getElementById('prev-btn').disabled = (currentSlide === 1);
+            document.getElementById('next-btn').disabled = (currentSlide === totalSlides);
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        updateSlide();
+    </script>
+</body>
+</html>
